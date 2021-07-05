@@ -1,18 +1,18 @@
+import os
+import tempfile
 from argparse import ArgumentParser
-import tempfile, os, time
 from typing import Tuple
 
 import torch
-from omegaconf import DictConfig
-from pytorch_lightning import Trainer, seed_everything
-
 from code2seq.dataset import PathContextDataModule, TypedPathContextDataModule
 from code2seq.model import Code2Seq, Code2Class, TypedCode2Seq
 from code2seq.utils.vocabulary import Vocabulary
+from omegaconf import DictConfig
+from pytorch_lightning import Trainer, seed_everything
 
 
 def load_code2seq(
-        checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
+    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
 ) -> Tuple[Code2Seq, PathContextDataModule]:
     model = Code2Seq.load_from_checkpoint(checkpoint_path=checkpoint_path)
     data_module = PathContextDataModule(config, vocabulary)
@@ -20,7 +20,7 @@ def load_code2seq(
 
 
 def load_code2class(
-        checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
+    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
 ) -> Tuple[Code2Class, PathContextDataModule]:
     model = Code2Class.load_from_checkpoint(checkpoint_path=checkpoint_path)
     data_module = PathContextDataModule(config, vocabulary)
@@ -28,7 +28,7 @@ def load_code2class(
 
 
 def load_typed_code2seq(
-        checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
+    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
 ) -> Tuple[TypedCode2Seq, TypedPathContextDataModule]:
     model = TypedCode2Seq.load_from_checkpoint(checkpoint_path=checkpoint_path)
     data_module = TypedPathContextDataModule(config, vocabulary)
@@ -68,8 +68,7 @@ def preprocess(project_path: str, psiminer_path: str) -> str:
     print(temporary_dir.name)
     print(config_path)
     os.chdir("/")
-    os.system(
-        "bash \"{}\" \"{}\" \"{}\" \"{}\"".format(psiminer_path, project_path, preprocessed_path, config_path))
+    os.system('bash "{}" "{}" "{}" "{}"'.format(psiminer_path, project_path, preprocessed_path, config_path))
     return temporary_dir.name
 
 
