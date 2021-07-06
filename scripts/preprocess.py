@@ -1,13 +1,6 @@
 import os
 from argparse import ArgumentParser
 from shutil import copytree, rmtree
-from git import Repo
-
-
-def download_psiminer():
-    link = "https://github.com/JetBrains-Research/psiminer.git"
-    Repo.clone_from(link, "./psiminer")
-    os.system("./psiminer/gradlew clean build")
 
 
 def fix_naming(dataset_path: str):
@@ -18,8 +11,6 @@ def fix_naming(dataset_path: str):
 
 
 def preprocess(project_path: str):
-    if not os.path.isdir("./psiminer"):
-        download_psiminer()
     project_name = os.path.basename(os.path.normpath(project_path))
     dataset_path = "../datasets/" + project_name + "/java-med-psi/"
     new_path = "temporary/test/" + project_name
