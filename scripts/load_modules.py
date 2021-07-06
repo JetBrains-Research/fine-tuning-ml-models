@@ -12,11 +12,11 @@ def download_psiminer():
 
 
 def download_code2seq():
-    if not os.path.isdir("Code2seq"):
+    if not os.path.isdir("сode2seq"):
         link = "https://github.com/JetBrains-Research/code2seq.git"
-        repo = git.Repo.clone_from(link, "./Code2seq")
+        repo = git.Repo.clone_from(link, "./сode2seq")
         repo.git.checkout("test-results-serialization")
-    sys.path.append("./Code2seq/code2seq")
+    sys.path.append("./сode2seq/code2seq")
 
 
 if __name__ == "__main__":
