@@ -7,10 +7,19 @@ setup_code2seq()
 from code2seq.test import test
 
 
-def test_single(model, project):
+def get_only_metrics(results):
+    """Turn dictionary of results into a list of metrics"""
+
+    metrics_names = ["test/f1", "test/precision", "test/recall", "test/loss"]
+    metrics = [results[name] for name in metrics_names]
+    return metrics
+
+
+def test_single(model_path: str, project_path: str):
     """Evaluate model"""
 
-    print(test(model, project))
+    results = test(model_path, project_path)
+    return get_only_metrics(results[0])
 
 
 if __name__ == "__main__":
@@ -19,4 +28,4 @@ if __name__ == "__main__":
     arg_parser.add_argument("model", type=str, help="Path to model checkpoint to be evaluated")
 
     args = arg_parser.parse_args()
-    test_single(args.model, args.project)
+    print(test_single(args.model, args.project))
