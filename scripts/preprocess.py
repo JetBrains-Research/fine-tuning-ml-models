@@ -1,8 +1,9 @@
 import os
-from argparse import ArgumentParser
-from load_tools import setup_psiminer
 import tempfile
+from argparse import ArgumentParser
 from shutil import copytree, rmtree
+
+from .load_tools import setup_psiminer
 
 
 def fix_naming(dataset_path: str) -> None:

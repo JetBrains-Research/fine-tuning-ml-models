@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
-from load_tools import setup_code2seq
+
+from .load_tools import setup_code2seq
 
 setup_code2seq()
 
