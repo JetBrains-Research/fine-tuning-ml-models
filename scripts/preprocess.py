@@ -1,13 +1,13 @@
 import os
 import tempfile
 from argparse import ArgumentParser
-from shutil import copytree, rmtree
+from shutil import copytree
 
 from .load_tools import setup_psiminer
 
 
 def fix_naming(dataset_path: str) -> None:
-    """"Remove useless datasets"""
+    """Remove useless datasets"""
 
     train = os.path.join(dataset_path, "java-med-psi.train.c2s")
     val = os.path.join(dataset_path, "java-med-psi.val.c2s")
@@ -19,13 +19,12 @@ def preprocess(project_path: str) -> None:
     """Transform project into test data for code2seq via psiminer"""
 
     project_name = os.path.basename(os.path.normpath(project_path))
-    dataset_path = os.path.join("..", "datasets", project_name, "java-med-psi")
-    tmp = tempfile.mkdtemp(dir=".")
-    new_path = os.path.join(tmp, "test", project_name)
-    copytree(project_path, new_path)
-    cmd = f'bash ./psiminer/psiminer.sh "{tmp}" "{dataset_path}" psiminer_config.json'
-    os.system(cmd)
-    rmtree(tmp)
+    dataset_path = os.path.join("datasets", project_name, "java-med-psi")
+    with tempfile.TemporaryDirectory(dir=".") as tmp:
+        new_path = os.path.join(tmp, "test", project_name)
+        copytree(project_path, new_path)
+        cmd = f'bash psiminer/psiminer.sh "{tmp}" "{dataset_path}" configs/psiminer_config.json'
+        os.system(cmd)
     fix_naming(dataset_path)
 
 
