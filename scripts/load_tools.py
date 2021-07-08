@@ -10,7 +10,10 @@ def setup_psiminer() -> None:
     if not os.path.isdir("./psiminer"):
         link = "https://github.com/JetBrains-Research/psiminer.git"
         git.Repo.clone_from(link, "./psiminer", multi_options=["--depth 1 -b master"])
-        os.system("./psiminer/gradlew clean build")
+
+        os.chdir('psiminer')
+        os.system("./gradlew clean build")
+        os.chdir('..')
 
 
 def setup_code2seq() -> None:
