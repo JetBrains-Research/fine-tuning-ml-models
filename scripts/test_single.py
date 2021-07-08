@@ -4,7 +4,7 @@ from .load_tools import setup_code2seq
 
 setup_code2seq()
 
-from сode2seq.code2seq.test import test
+from code2seq.test import test
 
 
 def test_single(model, project):
