@@ -23,7 +23,7 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
             print(project_name)
             try:
                 metrics = test_single(model_path, os.path.join("datasets", project_name))
-            except TypeError:
+            except:
                 metrics = [-1, -1, -1, -1]
             row = {"Project": project_name}
             for i in range(1, len(header)):

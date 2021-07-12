@@ -9,8 +9,8 @@ from .load_tools import setup_psiminer, PSIMINER_DIR
 def fix_naming(dataset_path: str) -> None:
     """Remove useless datasets"""
 
-    train = os.path.join(dataset_path, "java-med-psi.train.c2s")
-    val = os.path.join(dataset_path, "java-med-psi.val.c2s")
+    train = os.path.join(dataset_path, "java-med-psi-no-types.train.c2s")
+    val = os.path.join(dataset_path, "java-med-psi-no-types.val.c2s")
     os.remove(train)
     os.remove(val)
 
