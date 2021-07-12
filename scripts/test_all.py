@@ -1,9 +1,9 @@
 import os
 import csv
 from argparse import ArgumentParser
-from preprocess import preprocess
-from test_single import test_single
-import load_tools
+from .preprocess import preprocess
+from .test_single import test_single
+from .load_tools import setup_psiminer, setup_code2seq
 
 
 def test_all(dataset_path: str, model_path: str, results_path: str):
@@ -13,13 +13,18 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
     for project_name in project_names:
         preprocess(os.path.join(dataset_path, project_name))
 
+    project_names = os.listdir("datasets")
     result_file = os.path.join(results_path, "results.csv")
     header = ["Project", "F1", "Precision", "Recall", "Loss"]
     with open(result_file, "w") as f:
         writer = csv.DictWriter(f, fieldnames=header)
         writer.writeheader()
         for project_name in project_names:
-            metrics = test_single(model_path, os.path.join("..", "datasets", project_name))
+            print(project_name)
+            try:
+                metrics = test_single(model_path, os.path.join("datasets", project_name))
+            except TypeError:
+                metrics = [-1, -1, -1, -1]
             row = {"Project": project_name}
             for i in range(1, len(header)):
                 row[header[i]] = metrics[i - 1]
@@ -35,6 +40,6 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    load_tools.setup_psiminer()
-    load_tools.setup_psiminer()
+    setup_psiminer()
+    setup_code2seq()
     test_all(args.dataset, args.model, args.results)

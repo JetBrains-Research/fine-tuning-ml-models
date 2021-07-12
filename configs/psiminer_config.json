@@ -2,7 +2,7 @@
   "format": "code2seq",
   "problem": "method name prediction",
 
-  "resolveTypes": true,
+  "resolveTypes": false,
   "compressOperators": false,
   "removeKeyword": false,
   "removeComments": false,
