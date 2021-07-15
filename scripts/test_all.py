@@ -9,9 +9,9 @@ from .load_tools import setup_psiminer, setup_code2seq
 def test_all(dataset_path: str, model_path: str, results_path: str):
     """Evaluate and store all"""
 
-    project_names = os.listdir(dataset_path)
-    for project_name in project_names:
-        preprocess(os.path.join(dataset_path, project_name))
+    # project_names = os.listdir(dataset_path)
+    # for project_name in project_names:
+    #     preprocess(os.path.join(dataset_path, project_name))
 
     project_names = os.listdir("datasets")
     result_file = os.path.join(results_path, "results.csv")
@@ -29,7 +29,6 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
             for i in range(1, len(header)):
                 row[header[i]] = metrics[i - 1]
             writer.writerow(row)
-        f.close()
 
 
 if __name__ == "__main__":

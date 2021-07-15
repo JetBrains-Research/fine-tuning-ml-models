@@ -18,7 +18,7 @@ def get_only_metrics(results):
 def test_single(model_path: str, project_path: str):
     """Evaluate model"""
 
-    results = test(model_path, project_path, 1)
+    results = test(model_path, project_path, batch_size=1)
     return get_only_metrics(results[0])
 
 
