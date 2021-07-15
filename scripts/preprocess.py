@@ -3,7 +3,8 @@ import tempfile
 from argparse import ArgumentParser
 from shutil import copytree
 
-from .load_tools import setup_psiminer, PSIMINER_DIR
+from .load_tools import setup_psiminer
+from .utils import PSIMINER_DIR, PREPROCESSED_DATASETS_DIR
 
 
 def fix_naming(dataset_path: str) -> None:
@@ -19,7 +20,7 @@ def preprocess(project_path: str) -> None:
     """Transform project into test data for code2seq via psiminer"""
 
     project_name = os.path.basename(os.path.normpath(project_path))
-    dataset_path = os.path.join("datasets", project_name, "java-med-psi-no-types")
+    dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name, "java-med-psi-no-types")
     with tempfile.TemporaryDirectory(dir=".") as tmp:
         new_path = os.path.join(tmp, "test", project_name)
         copytree(project_path, new_path)
