@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 import os
 import tempfile
+from shutil import copy
 from typing import Tuple
 
 import torch
@@ -21,7 +22,7 @@ from .test_single import test_single
 
 
 def load_code2seq(
-        checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
+    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
 ) -> Tuple[Code2Seq, PathContextDataModule]:
     model = Code2Seq.load_from_checkpoint(checkpoint_path=checkpoint_path)
     data_module = PathContextDataModule(config, vocabulary)
@@ -29,7 +30,7 @@ def load_code2seq(
 
 
 def load_code2class(
-        checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
+    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
 ) -> Tuple[Code2Class, PathContextDataModule]:
     model = Code2Class.load_from_checkpoint(checkpoint_path=checkpoint_path)
     data_module = PathContextDataModule(config, vocabulary)
@@ -37,7 +38,7 @@ def load_code2class(
 
 
 def load_typed_code2seq(
-        checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
+    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
 ) -> Tuple[TypedCode2Seq, TypedPathContextDataModule]:
     model = TypedCode2Seq.load_from_checkpoint(checkpoint_path=checkpoint_path)
     data_module = TypedPathContextDataModule(config, vocabulary)
@@ -102,7 +103,8 @@ def train_and_test(dataset_path: str, model_path: str, fold_idx: int) -> str:
 
 
 def fine_tune(dataset_path: str, model_path: str, folds_number: int):
-    dataset = open(os.path.join(dataset_path, "java-med-psi-no-types", "java-med-psi-no-types.test.c2s"), "r")
+    start_path = os.path.join(dataset_path, "java-med-psi-no-types")
+    dataset = open(os.path.join(start_path, "java-med-psi-no-types.test.c2s"), "r")
     samples = dataset.readlines()
     fold_size = len(samples) // folds_number
 
@@ -111,16 +113,17 @@ def fine_tune(dataset_path: str, model_path: str, folds_number: int):
             preprocessed_path = os.path.join(tmp, str(i + 1))
             fold_path = os.path.join(preprocessed_path, "java-med-psi-no-types")
             os.makedirs(fold_path)
+            copy(os.path.join(start_path, "nodes_vocabulary.csv"), fold_path)
 
             with open(os.path.join(fold_path, "java-med-psi-no-types.train.c2s"), "w+") as train:
                 train.writelines(samples[: i * fold_size])
-                train.writelines(samples[(i + 2) * fold_size:])
+                train.writelines(samples[(i + 2) * fold_size :])
 
             with open(os.path.join(fold_path, "java-med-psi-no-types.val.c2s"), "w+") as val:
-                val.writelines(samples[(i + 1) * fold_size: (i + 2) * fold_size])
+                val.writelines(samples[(i + 1) * fold_size : (i + 2) * fold_size])
 
             with open(os.path.join(fold_path, "java-med-psi-no-types.test.c2s"), "w+") as test:
-                test.writelines(samples[i * fold_size: (i + 1) * fold_size])
+                test.writelines(samples[i * fold_size : (i + 1) * fold_size])
 
             print(f"Fold #{i}:", file=result_file)
             print("Metrics before:", test_single(model_path, preprocessed_path), file=result_file)
