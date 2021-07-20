@@ -48,10 +48,8 @@ def load_typed_code2seq(
 KNOWN_MODELS = {"code2seq": load_code2seq, "code2class": load_code2class, "typed-code2seq": load_typed_code2seq}
 
 
-def train_and_test(dataset_path: str, model_path: str, fold_idx: int) -> str:
+def train_and_test(dataset_path: str, model_path: str, project_name: str, fold_idx: int) -> str:
     """Trains model and return a path to best checkpoint"""
-
-    project_name = os.path.basename(os.path.normpath(dataset_path))
 
     checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
     config = checkpoint["hyper_parameters"]["config"]
@@ -103,6 +101,9 @@ def train_and_test(dataset_path: str, model_path: str, fold_idx: int) -> str:
 
 
 def fine_tune(dataset_path: str, model_path: str, folds_number: int):
+    """Do k-fold cross-validation and compare quality metrics before and after fine-tuning"""
+
+    project_name = os.path.basename(os.path.normpath(dataset_path))
     start_path = os.path.join(dataset_path, "java-med-psi-no-types")
     dataset = open(os.path.join(start_path, "java-med-psi-no-types.test.c2s"), "r")
     samples = dataset.readlines()
@@ -127,7 +128,7 @@ def fine_tune(dataset_path: str, model_path: str, folds_number: int):
 
             print(f"Fold #{i}:", file=result_file)
             print("Metrics before:", test_single(model_path, preprocessed_path), file=result_file)
-            trained_model_path = train_and_test(preprocessed_path, model_path, i)
+            trained_model_path = train_and_test(preprocessed_path, model_path, project_name, i)
             print("Metrics after:", test_single(trained_model_path, preprocessed_path), file=result_file)
 
 
