@@ -4,6 +4,7 @@ DEPENDENCIES_DIR = "dependencies"
 CODE2SEQ_DIR = os.path.join(DEPENDENCIES_DIR, "code2seq_repo")
 PSIMINER_DIR = os.path.join(DEPENDENCIES_DIR, "psiminer_repo")
 NO_TYPES_PATH = "java-med-psi-no-types"
+COMMENTUPDATER_DIR = os.path.join(DEPENDENCIES_DIR, "CommentUpdater")
 
 
 class RunInDir:

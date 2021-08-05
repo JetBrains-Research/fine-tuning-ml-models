@@ -1,7 +1,7 @@
 import sys
 import git
 import os
-from .utils import CODE2SEQ_DIR, PSIMINER_DIR, RunInDir
+from .utils import CODE2SEQ_DIR, PSIMINER_DIR, COMMENTUPDATER_DIR, RunInDir
 
 
 def setup_psiminer() -> None:
@@ -29,6 +29,15 @@ def setup_code2seq() -> None:
     add_path_code2seq()
 
 
+def setup_comment_updater() -> None:
+    """Load CommentUpdater if needed"""
+
+    if not os.path.exists(COMMENTUPDATER_DIR):
+        link = "https://github.com/malodetz/CommentUpdater.git"
+        git.Repo.clone_from(link, COMMENTUPDATER_DIR, multi_options=["--depth 1 -b dev-postprocessing"])
+
+
 if __name__ == "__main__":
     setup_psiminer()
     setup_code2seq()
+    setup_comment_updater()
