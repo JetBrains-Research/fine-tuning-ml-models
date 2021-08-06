@@ -98,13 +98,13 @@ def fine_tune(dataset_path: str, model_path: str, folds_number: int):
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.train.c2s"), "w+") as train:
                 train.writelines(samples[: i * fold_size])
-                train.writelines(samples[(i + 2) * fold_size:])
+                train.writelines(samples[(i + 2) * fold_size :])
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.val.c2s"), "w+") as val:
-                val.writelines(samples[(i + 1) * fold_size: (i + 2) * fold_size])
+                val.writelines(samples[(i + 1) * fold_size : (i + 2) * fold_size])
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.test.c2s"), "w+") as test:
-                test.writelines(samples[i * fold_size: (i + 1) * fold_size])
+                test.writelines(samples[i * fold_size : (i + 1) * fold_size])
 
             print(f"Fold #{i}:", file=result_file)
             print("Metrics before:", test_single(model_path, preprocessed_path), file=result_file)
