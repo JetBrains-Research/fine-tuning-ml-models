@@ -22,7 +22,7 @@ def preprocess(project_path: str) -> None:
     with tempfile.TemporaryDirectory(dir=".") as tmp:
         new_path = os.path.join(tmp, "test", project_name)
         copytree(project_path, new_path)
-        cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{tmp}" "{dataset_path}" configs/new_psiminer_config.json'
+        cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{tmp}" "{dataset_path}" configs/psiminer_v2_code2seq_config.json'
         os.system(cmd)
     fix_naming(dataset_path)
 

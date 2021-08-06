@@ -10,6 +10,7 @@ from pytorch_lightning import seed_everything, Trainer, LightningModule, Lightni
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 
 from .load_tools import setup_code2seq
+from .utils import NO_TYPES_PATH
 
 setup_code2seq()
 
@@ -17,35 +18,17 @@ from code2seq.dataset import PathContextDataModule, TypedPathContextDataModule
 from code2seq.model import Code2Seq, Code2Class, TypedCode2Seq
 from code2seq.utils.callback import UploadCheckpointCallback, PrintEpochResultCallback
 from code2seq.utils.vocabulary import Vocabulary
+from code2seq.test import KNOWN_MODELS
 
 from .test_single import test_single
 
 
-def load_code2seq(
-    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
-) -> Tuple[Code2Seq, PathContextDataModule]:
-    model = Code2Seq.load_from_checkpoint(checkpoint_path=checkpoint_path)
-    data_module = PathContextDataModule(config, vocabulary)
-    return model, data_module
+def get_model(model_path: str, config, vocabulary):
+    if config.name not in KNOWN_MODELS:
+        print(f"Unknown model {config.name}, try one of {' '.join(KNOWN_MODELS.keys())}")
+        exit(1)
 
-
-def load_code2class(
-    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
-) -> Tuple[Code2Class, PathContextDataModule]:
-    model = Code2Class.load_from_checkpoint(checkpoint_path=checkpoint_path)
-    data_module = PathContextDataModule(config, vocabulary)
-    return model, data_module
-
-
-def load_typed_code2seq(
-    checkpoint_path: str, config: DictConfig, vocabulary: Vocabulary
-) -> Tuple[TypedCode2Seq, TypedPathContextDataModule]:
-    model = TypedCode2Seq.load_from_checkpoint(checkpoint_path=checkpoint_path)
-    data_module = TypedPathContextDataModule(config, vocabulary)
-    return model, data_module
-
-
-KNOWN_MODELS = {"code2seq": load_code2seq, "code2class": load_code2class, "typed-code2seq": load_typed_code2seq}
+    return KNOWN_MODELS[config.name](model_path, config, vocabulary)
 
 
 def train_and_test(dataset_path: str, model_path: str, project_name: str, fold_idx: int) -> str:
@@ -55,18 +38,14 @@ def train_and_test(dataset_path: str, model_path: str, project_name: str, fold_i
     config = checkpoint["hyper_parameters"]["config"]
     vocabulary = checkpoint["hyper_parameters"]["vocabulary"]
     config.data_folder = dataset_path
-
-    if config.name not in KNOWN_MODELS:
-        print(f"Unknown model {config.name}, try one of {' '.join(KNOWN_MODELS.keys())}")
-        return ""
-
-    model, data_module = KNOWN_MODELS[config.name](model_path, config, vocabulary)
+    model, data_module = get_model(model_path, config, vocabulary)
 
     # define model checkpoint callback
     checkpoint_callback = ModelCheckpoint(
         dirpath=os.path.join("models", "fine_tuned", project_name, str(fold_idx)),
         period=config.save_every_epoch,
-        save_top_k=-1,
+        monitor="val_loss",
+        save_top_k=1,
     )
 
     # define other callbacks
@@ -104,27 +83,28 @@ def fine_tune(dataset_path: str, model_path: str, folds_number: int):
     """Do k-fold cross-validation and compare quality metrics before and after fine-tuning"""
 
     project_name = os.path.basename(os.path.normpath(dataset_path))
-    start_path = os.path.join(dataset_path, "java-med-psi-no-types")
-    dataset = open(os.path.join(start_path, "java-med-psi-no-types.test.c2s"), "r")
+    start_path = os.path.join(dataset_path, NO_TYPES_PATH)
+    dataset = open(os.path.join(start_path, f"{NO_TYPES_PATH}.test.c2s"), "r")
     samples = dataset.readlines()
+    folds_number += 1
     fold_size = len(samples) // folds_number
 
     with tempfile.TemporaryDirectory(dir=".") as tmp, open("results.txt", "w") as result_file:
         for i in range(folds_number - 1):
             preprocessed_path = os.path.join(tmp, str(i + 1))
-            fold_path = os.path.join(preprocessed_path, "java-med-psi-no-types")
+            fold_path = os.path.join(preprocessed_path, NO_TYPES_PATH)
             os.makedirs(fold_path)
             copy(os.path.join(start_path, "nodes_vocabulary.csv"), fold_path)
 
-            with open(os.path.join(fold_path, "java-med-psi-no-types.train.c2s"), "w+") as train:
+            with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.train.c2s"), "w+") as train:
                 train.writelines(samples[: i * fold_size])
-                train.writelines(samples[(i + 2) * fold_size :])
+                train.writelines(samples[(i + 2) * fold_size:])
 
-            with open(os.path.join(fold_path, "java-med-psi-no-types.val.c2s"), "w+") as val:
-                val.writelines(samples[(i + 1) * fold_size : (i + 2) * fold_size])
+            with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.val.c2s"), "w+") as val:
+                val.writelines(samples[(i + 1) * fold_size: (i + 2) * fold_size])
 
-            with open(os.path.join(fold_path, "java-med-psi-no-types.test.c2s"), "w+") as test:
-                test.writelines(samples[i * fold_size : (i + 1) * fold_size])
+            with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.test.c2s"), "w+") as test:
+                test.writelines(samples[i * fold_size: (i + 1) * fold_size])
 
             print(f"Fold #{i}:", file=result_file)
             print("Metrics before:", test_single(model_path, preprocessed_path), file=result_file)
