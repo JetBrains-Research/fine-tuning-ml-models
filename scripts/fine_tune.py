@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import os
 import tempfile
 from shutil import copy
-from typing import Tuple
+from typing import Tuple, Any
 
 import torch
 from omegaconf import DictConfig
@@ -31,7 +31,7 @@ def get_model(model_path: str, config, vocabulary):
     return KNOWN_MODELS[config.name](model_path, config, vocabulary)
 
 
-def train_and_test(dataset_path: str, model_path: str, project_name: str, fold_idx: int) -> str:
+def train_and_test(dataset_path: str, model_path: str, model_folder: str) -> Tuple[Any, Any, Any]:
     """Trains model and return a path to best checkpoint"""
 
     checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
@@ -42,7 +42,7 @@ def train_and_test(dataset_path: str, model_path: str, project_name: str, fold_i
 
     # define model checkpoint callback
     checkpoint_callback = ModelCheckpoint(
-        dirpath=os.path.join("models", "fine_tuned", project_name, str(fold_idx)),
+        dirpath=model_folder,
         period=config.save_every_epoch,
         monitor="val_loss",
         save_top_k=1,
@@ -73,10 +73,11 @@ def train_and_test(dataset_path: str, model_path: str, project_name: str, fold_i
         resume_from_checkpoint=model_path,
     )
 
+    metrics_before = trainer.test(model=model, datamodule=data_module)
     trainer.fit(model=model, datamodule=data_module)
-    trainer.test()
+    metrics_after = trainer.test()
 
-    return checkpoint_callback.best_model_path
+    return checkpoint_callback.best_model_path, metrics_before, metrics_after
 
 
 def fine_tune(dataset_path: str, model_path: str, folds_number: int):
@@ -98,18 +99,21 @@ def fine_tune(dataset_path: str, model_path: str, folds_number: int):
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.train.c2s"), "w+") as train:
                 train.writelines(samples[: i * fold_size])
-                train.writelines(samples[(i + 2) * fold_size :])
+                train.writelines(samples[(i + 2) * fold_size:])
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.val.c2s"), "w+") as val:
-                val.writelines(samples[(i + 1) * fold_size : (i + 2) * fold_size])
+                val.writelines(samples[(i + 1) * fold_size: (i + 2) * fold_size])
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.test.c2s"), "w+") as test:
-                test.writelines(samples[i * fold_size : (i + 1) * fold_size])
+                test.writelines(samples[i * fold_size: (i + 1) * fold_size])
 
             print(f"Fold #{i}:", file=result_file)
-            print("Metrics before:", test_single(model_path, preprocessed_path), file=result_file)
-            trained_model_path = train_and_test(preprocessed_path, model_path, project_name, i)
-            print("Metrics after:", test_single(trained_model_path, preprocessed_path), file=result_file)
+
+            tuned_model_folder = os.path.join("models", "fine_tuned", project_name, str(i))
+            trained_model_path, metrics_before, metrics_after = train_and_test(preprocessed_path, model_path,
+                                                                               tuned_model_folder)
+            print("Metrics before:", metrics_before, file=result_file)
+            print("Metrics after:", metrics_after, file=result_file)
 
 
 if __name__ == "__main__":
