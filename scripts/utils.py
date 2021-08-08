@@ -5,6 +5,8 @@ CODE2SEQ_DIR = os.path.join(DEPENDENCIES_DIR, "code2seq_repo")
 PSIMINER_DIR = os.path.join(DEPENDENCIES_DIR, "psiminer_repo")
 NO_TYPES_PATH = "java-med-psi-no-types"
 COMMENTUPDATER_DIR = os.path.join(DEPENDENCIES_DIR, "CommentUpdater")
+CONFIGS_DIR = "configs"
+PSIMINER_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_v2_code2seq_config.json")
 
 
 class RunInDir:

@@ -31,7 +31,7 @@ def get_model(model_path: str, config, vocabulary):
     return KNOWN_MODELS[config.name](model_path, config, vocabulary)
 
 
-def train_and_test(dataset_path: str, model_path: str, model_folder: str) -> Tuple[Any, Any, Any]:
+def train_and_test(dataset_path: str, model_path: str, model_folder: str) -> Tuple[str, Any, Any]:
     """Trains model and return a path to best checkpoint"""
 
     checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
@@ -99,19 +99,20 @@ def fine_tune(dataset_path: str, model_path: str, folds_number: int):
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.train.c2s"), "w+") as train:
                 train.writelines(samples[: i * fold_size])
-                train.writelines(samples[(i + 2) * fold_size:])
+                train.writelines(samples[(i + 2) * fold_size :])
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.val.c2s"), "w+") as val:
-                val.writelines(samples[(i + 1) * fold_size: (i + 2) * fold_size])
+                val.writelines(samples[(i + 1) * fold_size : (i + 2) * fold_size])
 
             with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.test.c2s"), "w+") as test:
-                test.writelines(samples[i * fold_size: (i + 1) * fold_size])
+                test.writelines(samples[i * fold_size : (i + 1) * fold_size])
 
             print(f"Fold #{i}:", file=result_file)
 
             tuned_model_folder = os.path.join("models", "fine_tuned", project_name, str(i))
-            trained_model_path, metrics_before, metrics_after = train_and_test(preprocessed_path, model_path,
-                                                                               tuned_model_folder)
+            trained_model_path, metrics_before, metrics_after = train_and_test(
+                preprocessed_path, model_path, tuned_model_folder
+            )
             print("Metrics before:", metrics_before, file=result_file)
             print("Metrics after:", metrics_after, file=result_file)
 

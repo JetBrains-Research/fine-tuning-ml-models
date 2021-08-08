@@ -3,28 +3,48 @@ import tempfile
 from argparse import ArgumentParser
 from shutil import copytree
 
-from .load_tools import setup_psiminer, PSIMINER_DIR
+from .load_tools import setup_psiminer
+from .utils import PSIMINER_DIR, PSIMINER_CONFIG, NO_TYPES_PATH
 
 
 def fix_naming(dataset_path: str) -> None:
-    """Remove useless datasets"""
+    """Fix names for code2seq compatability"""
 
-    old_name = os.path.join(dataset_path, "result.c2s")
-    new_name = os.path.join(dataset_path, "java-med-psi-no-types.test.c2s")
-    os.rename(old_name, new_name)
+    for old_name in os.listdir(dataset_path):
+        if old_name == "nodes_vocabulary.csv":
+            continue
+        old_path = os.path.join(dataset_path, old_name)
+        new_path = os.path.join(dataset_path, f"{NO_TYPES_PATH}.{old_name}")
+        os.rename(old_path, new_path)
 
 
-def preprocess(project_path: str) -> None:
+def run_psiminer(source_folder: str, destination_folder: str) -> None:
+    """Run psiminer and set correct filenames"""
+
+    cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{source_folder}" "{destination_folder}" {PSIMINER_CONFIG}'
+    os.system(cmd)
+    fix_naming(destination_folder)
+
+
+def preprocess_complete(project_path: str) -> None:
+    """Transform project into test, train and val data for code2seq"""
+
+    project_name = os.path.basename(os.path.normpath(project_path))
+    dataset_path = os.path.join("datasets", project_name, NO_TYPES_PATH)
+    run_psiminer(project_path, dataset_path)
+
+
+def preprocess_single(project_path: str) -> None:
     """Transform project into test data for code2seq via psiminer"""
 
     project_name = os.path.basename(os.path.normpath(project_path))
-    dataset_path = os.path.join("datasets", project_name, "java-med-psi-no-types")
     with tempfile.TemporaryDirectory(dir=".") as tmp:
-        new_path = os.path.join(tmp, "test", project_name)
+        data_path = os.path.join(tmp, project_name)
+        new_path = os.path.join(data_path, "test")
+        os.makedirs(os.path.join(data_path, "train"))
+        os.makedirs(os.path.join(data_path, "val"))
         copytree(project_path, new_path)
-        cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{tmp}" "{dataset_path}" configs/psiminer_v2_code2seq_config.json'
-        os.system(cmd)
-    fix_naming(dataset_path)
+        preprocess_complete(data_path)
 
 
 if __name__ == "__main__":
@@ -34,4 +54,4 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     setup_psiminer()
-    preprocess(args.project)
+    preprocess_single(args.project)

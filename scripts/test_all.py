@@ -1,7 +1,7 @@
 import os
 import csv
 from argparse import ArgumentParser
-from .preprocess import preprocess
+from .preprocess import preprocess_single
 from .test_single import test_single
 from .load_tools import setup_psiminer, setup_code2seq
 
@@ -11,7 +11,7 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
 
     project_names = os.listdir(dataset_path)
     for project_name in project_names:
-        preprocess(os.path.join(dataset_path, project_name))
+        preprocess_single(os.path.join(dataset_path, project_name))
 
     project_names = os.listdir("datasets")
     result_file = os.path.join(results_path, "results.csv")
