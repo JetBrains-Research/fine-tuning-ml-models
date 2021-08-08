@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from shutil import copytree
 
 from .load_tools import setup_psiminer
-from .utils import PSIMINER_DIR, PSIMINER_CONFIG, NO_TYPES_PATH
+from .utils import PSIMINER_DIR, PREPROCESSED_DATASETS_DIR, PSIMINER_CONFIG, NO_TYPES_PATH
 
 
 def fix_naming(dataset_path: str) -> None:
@@ -30,7 +30,7 @@ def preprocess_complete(project_path: str) -> None:
     """Transform project into test, train and val data for code2seq"""
 
     project_name = os.path.basename(os.path.normpath(project_path))
-    dataset_path = os.path.join("datasets", project_name, NO_TYPES_PATH)
+    dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name, NO_TYPES_PATH)
     run_psiminer(project_path, dataset_path)
 
 

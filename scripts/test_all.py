@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 from .preprocess import preprocess_single
 from .test_single import test_single
 from .load_tools import setup_psiminer, setup_code2seq
+from .utils import PREPROCESSED_DATASETS_DIR
 
 
 def test_all(dataset_path: str, model_path: str, results_path: str):
@@ -13,7 +14,7 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
     for project_name in project_names:
         preprocess_single(os.path.join(dataset_path, project_name))
 
-    project_names = os.listdir("datasets")
+    project_names = os.listdir(PREPROCESSED_DATASETS_DIR)
     result_file = os.path.join(results_path, "results.csv")
     header = ["Project", "F1", "Precision", "Recall", "Loss"]
     with open(result_file, "w") as f:
@@ -22,7 +23,7 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
         for project_name in project_names:
             print(project_name)
             try:
-                metrics = test_single(model_path, os.path.join("datasets", project_name))
+                metrics = test_single(model_path, os.path.join(PREPROCESSED_DATASETS_DIR, project_name))
             except:
                 metrics = [-1, -1, -1, -1]
             row = {"Project": project_name}

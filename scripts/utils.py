@@ -7,6 +7,7 @@ NO_TYPES_PATH = "java-med-psi-no-types"
 COMMENTUPDATER_DIR = os.path.join(DEPENDENCIES_DIR, "CommentUpdater")
 CONFIGS_DIR = "configs"
 PSIMINER_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_v2_code2seq_config.json")
+PREPROCESSED_DATASETS_DIR = "datasets"
 
 
 class RunInDir:
