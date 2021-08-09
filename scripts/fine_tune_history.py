@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 import os
 import tempfile
+import json
+from shutil import copytree
 from .utils import CLONED_REPOS_DIR, EXTRACTED_METHODS_DIR, COMMENT_UPDATER_DIR, COMMENT_UPDATER_CONFIG_DIR
 from .load_tools import setup_comment_updater
 import git
@@ -29,13 +31,63 @@ def run_comment_updater(project_name: str) -> None:
         os.system(cmd)
 
 
+def write_classes(methods_list, folder: str) -> None:
+    for i in range(len(methods_list)):
+        filename = f"A{i}.java"
+        with open(os.path.join(folder, filename), "w") as f:
+            f.write("public class A" + str(i) + "{\n")
+            f.write(methods_list[i])
+            f.write("}\n")
+
+
+def split_dataset(project_name: str, first_commit: str, second_commit: str) -> str:
+    dataset_dir = os.path.join(EXTRACTED_METHODS_DIR, project_name)
+    train_path = os.path.join(dataset_dir, "train")
+    val_path = os.path.join(dataset_dir, "val")
+    os.makedirs(val_path)
+    test_path = os.path.join(dataset_dir, "test")
+    os.makedirs(test_path)
+
+    source_dir = os.path.join(CLONED_REPOS_DIR, project_name)
+    repo = git.Repo(source_dir)
+    repo.head.reset(first_commit, index=True, working_tree=True)
+    copytree(source_dir, train_path)
+
+    first_commit_time = int(repo.commit(first_commit).committed_date)
+    second_commit_time = int(repo.commit(second_commit).committed_date)
+    print(first_commit_time, second_commit_time)
+
+    val_methods = []
+    test_methods = []
+
+    raw_samples = open(os.path.join(dataset_dir, f"{project_name}.jsonl"), "r")
+    for sample in raw_samples.readlines():
+        data = json.loads(sample)
+        if data["isNew"]:
+            time = int(data["commitTime"]) // 1000
+            if first_commit_time < time <= second_commit_time:
+                val_methods.append(data["newCode"])
+            elif second_commit_time < time:
+                test_methods.append(data["newCode"])
+
+    write_classes(val_methods, val_path)
+    write_classes(test_methods, test_path)
+
+    return dataset_dir
+
+
 def fine_tune_history(link: str, first_commit: str, second_commit: str):
     print("Cloning repo...")
     project_name = clone_repo(link)
     print("Cloned!")
+
     print("Running update mining...")
     run_comment_updater(project_name)
-    print("Mining completed")
+    print("Mining completed!")
+
+    print("Extracting added methods...")
+    raw_dataset = split_dataset(project_name, first_commit, second_commit)
+    print("Extracted!")
 
 
 if __name__ == "__main__":
