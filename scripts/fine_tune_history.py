@@ -3,9 +3,11 @@ import os
 import tempfile
 import json
 from shutil import copytree
-from .utils import CLONED_REPOS_DIR, EXTRACTED_METHODS_DIR, COMMENT_UPDATER_DIR, COMMENT_UPDATER_CONFIG_DIR
+from .utils import CLONED_REPOS_DIR, EXTRACTED_METHODS_DIR, COMMENT_UPDATER_DIR, COMMENT_UPDATER_CONFIG_DIR, \
+    PREPROCESSED_DATASETS_DIR
 from .load_tools import setup_comment_updater
 from .preprocess import preprocess_complete
+from .fine_tune import train_and_test
 import git
 
 
@@ -93,6 +95,16 @@ def fine_tune_history(link: str, first_commit: str, second_commit: str):
     print("Preprocessing raw java to .c2s...")
     preprocess_complete(raw_dataset)
     print("Preprocessing finished!")
+
+    print("Model evaluating and trained...")
+    dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
+    model_path = os.path.join("models", "epoch=08-val_loss=14.9236.ckpt")
+    model_folder = os.path.join("models", "history_fine_tuned", project_name)
+    model_path, metrics_before, metrics_after = train_and_test(dataset_path, model_path, model_folder)
+    print("Finished!")
+    print("___________________________________________________________________________________________")
+    print("Metrics before:", metrics_before)
+    print("Metrics after:", metrics_after)
 
 
 if __name__ == "__main__":
