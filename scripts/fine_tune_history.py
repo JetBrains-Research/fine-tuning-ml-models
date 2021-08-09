@@ -5,6 +5,7 @@ import json
 from shutil import copytree
 from .utils import CLONED_REPOS_DIR, EXTRACTED_METHODS_DIR, COMMENT_UPDATER_DIR, COMMENT_UPDATER_CONFIG_DIR
 from .load_tools import setup_comment_updater
+from .preprocess import preprocess_complete
 import git
 
 
@@ -43,9 +44,9 @@ def write_classes(methods_list, folder: str) -> None:
 def split_dataset(project_name: str, first_commit: str, second_commit: str) -> str:
     dataset_dir = os.path.join(EXTRACTED_METHODS_DIR, project_name)
     train_path = os.path.join(dataset_dir, "train")
-    val_path = os.path.join(dataset_dir, "val")
+    val_path = os.path.join(dataset_dir, "val", project_name)
     os.makedirs(val_path)
-    test_path = os.path.join(dataset_dir, "test")
+    test_path = os.path.join(dataset_dir, "test", project_name)
     os.makedirs(test_path)
 
     source_dir = os.path.join(CLONED_REPOS_DIR, project_name)
@@ -88,6 +89,10 @@ def fine_tune_history(link: str, first_commit: str, second_commit: str):
     print("Extracting added methods...")
     raw_dataset = split_dataset(project_name, first_commit, second_commit)
     print("Extracted!")
+
+    print("Preprocessing raw java to .c2s...")
+    preprocess_complete(raw_dataset)
+    print("Preprocessing finished!")
 
 
 if __name__ == "__main__":
