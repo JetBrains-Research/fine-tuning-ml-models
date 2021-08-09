@@ -3,8 +3,13 @@ import os
 import tempfile
 import json
 from shutil import copytree
-from .utils import CLONED_REPOS_DIR, EXTRACTED_METHODS_DIR, COMMENT_UPDATER_DIR, COMMENT_UPDATER_CONFIG_DIR, \
-    PREPROCESSED_DATASETS_DIR
+from .utils import (
+    CLONED_REPOS_DIR,
+    EXTRACTED_METHODS_DIR,
+    COMMENT_UPDATER_DIR,
+    COMMENT_UPDATER_CONFIG_DIR,
+    PREPROCESSED_DATASETS_DIR,
+)
 from .load_tools import setup_comment_updater
 from .preprocess import preprocess_complete
 from .fine_tune import train_and_test
