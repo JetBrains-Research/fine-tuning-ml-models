@@ -79,7 +79,7 @@ def split_dataset(project_name: str, first_commit: str, second_commit: str) -> s
     return dataset_dir
 
 
-def fine_tune_history(link: str, first_commit: str, second_commit: str):
+def fine_tune_history(link: str, first_commit: str, second_commit: str, model_path: str):
     print("Cloning repo...")
     project_name = clone_repo(link)
     print("Cloned!")
@@ -98,7 +98,6 @@ def fine_tune_history(link: str, first_commit: str, second_commit: str):
 
     print("Model evaluating and trained...")
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
-    model_path = os.path.join("models", "epoch=08-val_loss=14.9236.ckpt")
     model_folder = os.path.join("models", "history_fine_tuned", project_name)
     model_path, metrics_before, metrics_after = train_and_test(dataset_path, model_path, model_folder)
     print("Finished!")
@@ -112,9 +111,10 @@ if __name__ == "__main__":
     arg_parser.add_argument("project_link", type=str, help="A .git link to clone project with all history")
     arg_parser.add_argument("commit1", type=str, help="Hash of 1st separation commit")
     arg_parser.add_argument("commit2", type=str, help="Hash of 2nd separation commit")
+    arg_parser.add_argument("model", type=str, help="Already trained model to be fine-tuned")
 
     args = arg_parser.parse_args()
 
     setup_comment_updater()
 
-    fine_tune_history(args.project_link, args.commit1, args.commit2)
+    fine_tune_history(args.project_link, args.commit1, args.commit2, args.model)
