@@ -44,11 +44,11 @@ def write_classes(methods_list, folder: str) -> None:
         filename = f"A{i}.java"
         with open(os.path.join(folder, filename), "w") as f:
             f.write("public class A" + str(i) + "{\n")
-            f.write(methods_list[i])
+            f.write(methods_list[i]["code"])
             f.write("}\n")
 
 
-def split_dataset(project_name: str, first_commit: str, second_commit: str) -> str:
+def split_dataset(project_name: str, test_part: float, val_part: str) -> str:
     dataset_dir = os.path.join(EXTRACTED_METHODS_DIR, project_name)
     train_path = os.path.join(dataset_dir, "train")
     val_path = os.path.join(dataset_dir, "val", project_name)
@@ -56,35 +56,32 @@ def split_dataset(project_name: str, first_commit: str, second_commit: str) -> s
     test_path = os.path.join(dataset_dir, "test", project_name)
     os.makedirs(test_path)
 
-    source_dir = os.path.join(CLONED_REPOS_DIR, project_name)
-    repo = git.Repo(source_dir)
-    repo.head.reset(first_commit, index=True, working_tree=True)
-    copytree(source_dir, train_path)
-
-    first_commit_time = int(repo.commit(first_commit).committed_date)
-    second_commit_time = int(repo.commit(second_commit).committed_date)
-    print(first_commit_time, second_commit_time)
-
-    val_methods = []
-    test_methods = []
-
     raw_samples = open(os.path.join(dataset_dir, f"{project_name}.jsonl"), "r")
-    for sample in raw_samples.readlines():
-        data = json.loads(sample)
-        if data["isNew"]:
-            time = int(data["commitTime"]) // 1000
-            if first_commit_time < time <= second_commit_time:
-                val_methods.append(data["newCode"])
-            elif second_commit_time < time:
-                test_methods.append(data["newCode"])
+    added_methods = [sample for sample in list(map(json.loads, raw_samples)) if sample["update"] == "ADD"]
+    added_methods.sort(key=lambda method: method["commitTime"])
 
+    num_of_val_methods = int(len(added_methods) * val_part)
+    num_of_test_methods = int(len(added_methods) * test_part)
+    val_methods = added_methods[num_of_test_methods : num_of_test_methods + num_of_val_methods]
+    test_methods = added_methods[:num_of_test_methods]
     write_classes(val_methods, val_path)
     write_classes(test_methods, test_path)
+
+    last_commit_time = val_methods[-1]["commitTime"]
+    snapshot_commit_id = ""
+    for i in range(num_of_test_methods + num_of_val_methods, len(added_methods)):
+        if added_methods[i]["commitTime"] > last_commit_time:
+            snapshot_commit_id = added_methods[i]["commitId"]
+
+    source_dir = os.path.join(CLONED_REPOS_DIR, project_name)
+    repo = git.Repo(source_dir)
+    repo.head.reset(snapshot_commit_id, index=True, working_tree=True)
+    copytree(source_dir, train_path)
 
     return dataset_dir
 
 
-def fine_tune_history(link: str, first_commit: str, second_commit: str, model_path: str):
+def fine_tune_history(link: str, val_part: float, test_part: str, model_path: str):
     print("Cloning repo...")
     project_name = clone_repo(link)
     print("Cloned!")
@@ -94,7 +91,7 @@ def fine_tune_history(link: str, first_commit: str, second_commit: str, model_pa
     print("Mining completed!")
 
     print("Extracting added methods...")
-    raw_dataset = split_dataset(project_name, first_commit, second_commit)
+    raw_dataset = split_dataset(project_name, val_part, test_part)
     print("Extracted!")
 
     print("Preprocessing raw java to .c2s...")
@@ -114,12 +111,12 @@ def fine_tune_history(link: str, first_commit: str, second_commit: str, model_pa
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("project_link", type=str, help="A .git link to clone project with all history")
-    arg_parser.add_argument("commit1", type=str, help="Hash of 1st separation commit")
-    arg_parser.add_argument("commit2", type=str, help="Hash of 2nd separation commit")
+    arg_parser.add_argument("val_part", type=float, help="Fraction of validation part")
+    arg_parser.add_argument("test_part", type=float, help="Fraction of test part")
     arg_parser.add_argument("model", type=str, help="Already trained model to be fine-tuned")
 
     args = arg_parser.parse_args()
 
     setup_comment_updater()
 
-    fine_tune_history(args.project_link, args.commit1, args.commit2, args.model)
+    fine_tune_history(args.project_link, args.val_part, args.test_part, args.model)
