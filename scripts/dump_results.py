@@ -6,19 +6,17 @@ from .load_tools import setup_code2seq
 
 setup_code2seq()
 
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from code2seq.dataset import PathContextDataModule, TypedPathContextDataModule
 from code2seq.model import Code2Seq, Code2Class, TypedCode2Seq
-from code2seq.utils.callback import UploadCheckpointCallback, PrintEpochResultCallback
 from code2seq.utils.vocabulary import Vocabulary, SOS, EOS, PAD
-from code2seq.test import KNOWN_MODELS
 
 
 def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List[int]) -> List[str]:
     return [id_to_label[i.item()] for i in sample if i.item() not in ignore_index]
 
 
-def extract(checkpoint_path: str, data_folder: str = None, batch_size: int = None) -> List[(str, str)]:
+def extract(checkpoint_path: str, data_folder: str = None, batch_size: int = None) -> List[Tuple[str, str]]:
     checkpoint = torch.load(checkpoint_path, map_location=torch.device("cpu"))
     config = checkpoint["hyper_parameters"]["config"]
     vocabulary = checkpoint["hyper_parameters"]["vocabulary"]
