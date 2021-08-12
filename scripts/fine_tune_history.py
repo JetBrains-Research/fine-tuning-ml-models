@@ -48,7 +48,7 @@ def write_classes(methods_list, folder: str) -> None:
             f.write("}\n")
 
 
-def split_dataset(project_name: str, test_part: float, val_part: str) -> str:
+def split_dataset(project_name: str, val_part: float, test_part: str) -> str:
     dataset_dir = os.path.join(EXTRACTED_METHODS_DIR, project_name)
     train_path = os.path.join(dataset_dir, "train")
     val_path = os.path.join(dataset_dir, "val", project_name)
@@ -113,7 +113,9 @@ if __name__ == "__main__":
     arg_parser.add_argument("project_link", type=str, help="A .git link to clone project with all history")
     arg_parser.add_argument("val_part", type=float, help="Fraction of validation part")
     arg_parser.add_argument("test_part", type=float, help="Fraction of test part")
-    arg_parser.add_argument("model", type=str, help="Already trained model to be fine-tuned")
+    arg_parser.add_argument(
+        "--model", type=str, help="Already trained model to be fine-tuned", default=None, required=False
+    )
 
     args = arg_parser.parse_args()
 

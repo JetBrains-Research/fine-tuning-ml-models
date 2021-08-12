@@ -14,7 +14,7 @@
     },
     {
       "name": "by annotations",
-      "excludeModifiers": [
+      "excludeAnnotations": [
         "Override"
       ]
     }

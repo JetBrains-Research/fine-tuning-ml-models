@@ -5,12 +5,12 @@ from shutil import copy
 from typing import Tuple, Any
 
 import torch
-from omegaconf import DictConfig
-from pytorch_lightning import seed_everything, Trainer, LightningModule, LightningDataModule
+from omegaconf import OmegaConf
+from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 
 from .load_tools import setup_code2seq
-from .utils import NO_TYPES_PATH
+from .utils import NO_TYPES_PATH, CODE2SEQ_CONFIG
 
 setup_code2seq()
 
@@ -18,27 +18,38 @@ from code2seq.dataset import PathContextDataModule, TypedPathContextDataModule
 from code2seq.model import Code2Seq, Code2Class, TypedCode2Seq
 from code2seq.utils.callback import UploadCheckpointCallback, PrintEpochResultCallback
 from code2seq.utils.vocabulary import Vocabulary
-from code2seq.test import KNOWN_MODELS
-
-from .test_single import test_single
+from code2seq.preprocessing.build_vocabulary import preprocess
 
 
-def get_model(model_path: str, config, vocabulary):
-    if config.name not in KNOWN_MODELS:
-        print(f"Unknown model {config.name}, try one of {' '.join(KNOWN_MODELS.keys())}")
-        exit(1)
+def get_untrained_model(dataset_path: str):
+    config = OmegaConf.load(CODE2SEQ_CONFIG)
+    config.data_folder = dataset_path
+    preprocess(config)
+    vocabulary = Vocabulary.load_vocabulary(
+        os.path.join(config.data_folder, config.dataset.name, config.vocabulary_name)
+    )
+    model = Code2Seq(config, vocabulary)
+    data_module = PathContextDataModule(config, vocabulary)
+    return model, data_module, config, vocabulary
 
-    return KNOWN_MODELS[config.name](model_path, config, vocabulary)
+
+def get_pretrained_model(model_path: str, dataset_path: str):
+    checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
+    config = checkpoint["hyper_parameters"]["config"]
+    config.data_folder = dataset_path
+    vocabulary = checkpoint["hyper_parameters"]["vocabulary"]
+    model = Code2Seq.load_from_checkpoint(checkpoint_path=model_path)
+    data_module = PathContextDataModule(config, vocabulary)
+    return model, data_module, config, vocabulary
 
 
 def train_and_test(dataset_path: str, model_path: str, model_folder: str) -> Tuple[str, Any, Any]:
     """Trains model and return a path to best checkpoint"""
 
-    checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
-    config = checkpoint["hyper_parameters"]["config"]
-    vocabulary = checkpoint["hyper_parameters"]["vocabulary"]
-    config.data_folder = dataset_path
-    model, data_module = get_model(model_path, config, vocabulary)
+    if model_path:
+        model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path)
+    else:
+        model, data_module, config, vocabulary = get_untrained_model(dataset_path)
 
     # define model checkpoint callback
     checkpoint_callback = ModelCheckpoint(

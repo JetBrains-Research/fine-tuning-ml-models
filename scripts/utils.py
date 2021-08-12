@@ -8,6 +8,7 @@ COMMENT_UPDATER_DIR = os.path.join(DEPENDENCIES_DIR, "CommentUpdater")
 CONFIGS_DIR = "configs"
 PSIMINER_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_v2_code2seq_config.json")
 COMMENT_UPDATER_CONFIG_DIR = os.path.join(CONFIGS_DIR, "comment_updater_config")
+CODE2SEQ_CONFIG = os.path.join(CONFIGS_DIR, "code2seq_config.yaml")
 PREPROCESSED_DATASETS_DIR = "datasets"
 CLONED_REPOS_DIR = "cloned_repos"
 EXTRACTED_METHODS_DIR = "extracted_methods"

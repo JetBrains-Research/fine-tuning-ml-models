@@ -29,6 +29,7 @@ def run_psiminer(source_folder: str, destination_folder: str) -> None:
 def preprocess_complete(project_path: str) -> None:
     """Transform project into test, train and val data for code2seq"""
 
+    setup_psiminer()
     project_name = os.path.basename(os.path.normpath(project_path))
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name, NO_TYPES_PATH)
     run_psiminer(project_path, dataset_path)
@@ -37,6 +38,7 @@ def preprocess_complete(project_path: str) -> None:
 def preprocess_single(project_path: str) -> None:
     """Transform project into test data for code2seq via psiminer"""
 
+    setup_psiminer()
     project_name = os.path.basename(os.path.normpath(project_path))
     with tempfile.TemporaryDirectory(dir=".") as tmp:
         data_path = os.path.join(tmp, project_name)
@@ -53,5 +55,4 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    setup_psiminer()
     preprocess_single(args.project)

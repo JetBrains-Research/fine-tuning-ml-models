@@ -52,4 +52,5 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    extract(args.checkpoint, args.data_folder, args.batch_size)
+    for item in extract(args.checkpoint, args.data_folder, args.batch_size):
+        print(item)
