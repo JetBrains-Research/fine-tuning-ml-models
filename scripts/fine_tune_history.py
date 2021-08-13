@@ -30,7 +30,7 @@ def fine_tune_history(link: str, val_part: float, test_part: str, model_path: st
     print("Model evaluating and trained...")
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
     model_folder = os.path.join("models", "history_fine_tuned", project_name)
-    model_path, metrics_before, metrics_after = train_and_test(dataset_path, model_path, model_folder)
+    model_path, metrics_before, metrics_after = train_and_test(dataset_path, model_folder, model_path)
     print("Finished!")
     print("_" * 30)
     print("Metrics before:", metrics_before)
