@@ -17,8 +17,8 @@ def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List
     return [id_to_label[i.item()] for i in sample if i.item() not in ignore_index]
 
 
-def extract(checkpoint_path: str, data_folder: str = None, batch_size: int = None) -> List[Tuple[str, str]]:
-    model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder)
+def extract(checkpoint_path: str, data_folder: str, batch_size: int = None) -> List[Tuple[str, str]]:
+    model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder, batch_size)
     model.eval()
 
     id_to_label = {v: k for k, v in vocabulary.label_to_id.items()}

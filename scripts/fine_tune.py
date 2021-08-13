@@ -5,7 +5,7 @@ from shutil import copy
 from typing import Tuple, Any
 
 import torch
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, DictConfig
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 
@@ -22,7 +22,7 @@ from code2seq.preprocessing.build_vocabulary import preprocess
 
 
 def get_untrained_model(dataset_path: str):
-    config = OmegaConf.load(CODE2SEQ_CONFIG)
+    config = DictConfig(OmegaConf.load(CODE2SEQ_CONFIG))
     config.data_folder = dataset_path
     preprocess(config)
     vocabulary = Vocabulary.load_vocabulary(
