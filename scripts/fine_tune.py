@@ -33,10 +33,13 @@ def get_untrained_model(dataset_path: str):
     return model, data_module, config, vocabulary
 
 
-def get_pretrained_model(model_path: str, dataset_path: str):
+def get_pretrained_model(model_path: str, dataset_path: str, batch_size: int = None):
     checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
     config = checkpoint["hyper_parameters"]["config"]
     config.data_folder = dataset_path
+    if batch_size is not None:
+        config.batch_size = batch_size
+        config.test_batch_size = batch_size
     vocabulary = checkpoint["hyper_parameters"]["vocabulary"]
     model = Code2Seq.load_from_checkpoint(checkpoint_path=model_path)
     data_module = PathContextDataModule(config, vocabulary)
@@ -46,7 +49,7 @@ def get_pretrained_model(model_path: str, dataset_path: str):
 def train_and_test(dataset_path: str, model_path: str, model_folder: str) -> Tuple[str, Any, Any]:
     """Trains model and return a path to best checkpoint"""
 
-    if model_path:
+    if model_path is not None:
         model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path)
     else:
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)

@@ -1,85 +1,13 @@
 from argparse import ArgumentParser
 import os
-import tempfile
-import json
-from typing import List, Dict
-from shutil import copytree
-from .utils import (
-    CLONED_REPOS_DIR,
-    EXTRACTED_METHODS_DIR,
-    COMMENT_UPDATER_DIR,
-    COMMENT_UPDATER_CONFIG_DIR,
-    PREPROCESSED_DATASETS_DIR,
-)
+
+from scripts.clone_repo import clone_repo
+from scripts.mine_method_updates import run_comment_updater
+from scripts.split_mined_methods import split_dataset
+from .utils import PREPROCESSED_DATASETS_DIR
 from .load_tools import setup_comment_updater
 from .preprocess import preprocess_complete
 from .fine_tune import train_and_test
-import git
-
-
-def clone_repo(link: str) -> str:
-    project_name = link.split(".git")[0].split("/")[-1]
-    cloned_path = os.path.join(CLONED_REPOS_DIR, project_name)
-    git.Repo.clone_from(link, cloned_path)
-    return project_name
-
-
-def run_comment_updater(project_name: str) -> None:
-    result_path = os.path.join(EXTRACTED_METHODS_DIR, project_name)
-    os.makedirs(result_path)
-    stats_path = os.path.join(result_path, "stats.json")
-    open(stats_path, "w")
-    script_path = os.path.join(COMMENT_UPDATER_DIR, "comment_update_miner.sh")
-    with tempfile.TemporaryDirectory(dir=".") as tmp_dir:
-        input_path = os.path.join(tmp_dir, "input.txt")
-        f = open(input_path, "w")
-        f.write(os.path.abspath(os.path.join(CLONED_REPOS_DIR, project_name)))
-        f.close()
-
-        cmd = f"bash {script_path} {input_path} {result_path} {COMMENT_UPDATER_CONFIG_DIR} {stats_path}"
-        os.system(cmd)
-
-
-def write_classes(methods_list: List[Dict[str, str]], folder: str) -> None:
-    for i in range(len(methods_list)):
-        filename = f"A{i}.java"
-        with open(os.path.join(folder, filename), "w") as f:
-            f.write(f'public class A{i} {"{"}\n')
-            f.write(methods_list[i]["code"])
-            f.write("}\n")
-
-
-def split_dataset(project_name: str, val_part: float, test_part: str) -> str:
-    dataset_dir = os.path.join(EXTRACTED_METHODS_DIR, project_name)
-    train_path = os.path.join(dataset_dir, "train")
-    val_path = os.path.join(dataset_dir, "val", project_name)
-    os.makedirs(val_path)
-    test_path = os.path.join(dataset_dir, "test", project_name)
-    os.makedirs(test_path)
-
-    raw_samples = open(os.path.join(dataset_dir, f"{project_name}.jsonl"), "r")
-    added_methods = [sample for sample in list(map(json.loads, raw_samples)) if sample["update"] == "ADD"]
-    added_methods.sort(key=lambda method: method["commitTime"])
-
-    num_of_val_methods = int(len(added_methods) * val_part)
-    num_of_test_methods = int(len(added_methods) * test_part)
-    val_methods = added_methods[num_of_test_methods : num_of_test_methods + num_of_val_methods]
-    test_methods = added_methods[:num_of_test_methods]
-    write_classes(val_methods, val_path)
-    write_classes(test_methods, test_path)
-
-    last_commit_time = val_methods[-1]["commitTime"]
-    snapshot_commit_id = ""
-    for i in range(num_of_test_methods + num_of_val_methods, len(added_methods)):
-        if added_methods[i]["commitTime"] > last_commit_time:
-            snapshot_commit_id = added_methods[i]["commitId"]
-
-    source_dir = os.path.join(CLONED_REPOS_DIR, project_name)
-    repo = git.Repo(source_dir)
-    repo.head.reset(snapshot_commit_id, index=True, working_tree=True)
-    copytree(source_dir, train_path)
-
-    return dataset_dir
 
 
 def fine_tune_history(link: str, val_part: float, test_part: str, model_path: str):

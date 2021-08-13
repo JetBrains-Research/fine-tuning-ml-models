@@ -10,6 +10,7 @@ from typing import List, Dict, Tuple
 from code2seq.dataset import PathContextDataModule, TypedPathContextDataModule
 from code2seq.model import Code2Seq, Code2Class, TypedCode2Seq
 from code2seq.utils.vocabulary import Vocabulary, SOS, EOS, PAD
+from .fine_tune import get_pretrained_model
 
 
 def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List[int]) -> List[str]:
@@ -17,16 +18,7 @@ def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List
 
 
 def extract(checkpoint_path: str, data_folder: str = None, batch_size: int = None) -> List[Tuple[str, str]]:
-    checkpoint = torch.load(checkpoint_path, map_location=torch.device("cpu"))
-    config = checkpoint["hyper_parameters"]["config"]
-    vocabulary = checkpoint["hyper_parameters"]["vocabulary"]
-    if data_folder is not None:
-        config.data_folder = data_folder
-    if batch_size is not None:
-        config.hyper_parameters.test_batch_size = batch_size
-
-    datamodule = PathContextDataModule(config, vocabulary)
-    model = Code2Seq.load_from_checkpoint(checkpoint_path, map_location="cpu")
+    model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder)
     model.eval()
 
     id_to_label = {v: k for k, v in vocabulary.label_to_id.items()}
