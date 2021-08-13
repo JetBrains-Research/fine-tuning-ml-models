@@ -1,7 +1,7 @@
 import sys
 import git
 import os
-from .utils import CODE2SEQ_DIR, PSIMINER_DIR, COMMENT_UPDATER_DIR, RunInDir
+from .utils import CODE2SEQ_DIR, PSIMINER_DIR, COMMENT_UPDATER_DIR, PSIMINER_COMMIT_ID, RunInDir
 
 
 def setup_psiminer() -> None:
@@ -9,7 +9,8 @@ def setup_psiminer() -> None:
 
     if not os.path.exists(PSIMINER_DIR):
         link = "https://github.com/JetBrains-Research/psiminer.git"
-        git.Repo.clone_from(link, PSIMINER_DIR, multi_options=["--depth 1 -b psiminer_v2"])
+        repo = git.Repo.clone_from(link, PSIMINER_DIR, multi_options=["-b master"])
+        repo.head.reset(PSIMINER_COMMIT_ID, index=True, working_tree=True)
 
         with RunInDir(PSIMINER_DIR):
             os.system("./gradlew clean build")

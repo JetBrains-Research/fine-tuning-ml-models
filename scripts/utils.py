@@ -12,6 +12,7 @@ CODE2SEQ_CONFIG = os.path.join(CONFIGS_DIR, "code2seq_config.yaml")
 PREPROCESSED_DATASETS_DIR = "datasets"
 CLONED_REPOS_DIR = "cloned_repos"
 EXTRACTED_METHODS_DIR = "extracted_methods"
+PSIMINER_COMMIT_ID = "3487e323e7527bbe8cf3d483cb89fc0e9531a635"
 
 
 class RunInDir:

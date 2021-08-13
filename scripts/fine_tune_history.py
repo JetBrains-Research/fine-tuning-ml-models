@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import os
 import tempfile
 import json
+from typing import List, Dict
 from shutil import copytree
 from .utils import (
     CLONED_REPOS_DIR,
@@ -32,18 +33,18 @@ def run_comment_updater(project_name: str) -> None:
     with tempfile.TemporaryDirectory(dir=".") as tmp_dir:
         input_path = os.path.join(tmp_dir, "input.txt")
         f = open(input_path, "w")
-        print(os.path.abspath(os.path.join(CLONED_REPOS_DIR, project_name)), file=f)
+        f.write(os.path.abspath(os.path.join(CLONED_REPOS_DIR, project_name)))
         f.close()
 
         cmd = f"bash {script_path} {input_path} {result_path} {COMMENT_UPDATER_CONFIG_DIR} {stats_path}"
         os.system(cmd)
 
 
-def write_classes(methods_list, folder: str) -> None:
+def write_classes(methods_list: List[Dict[str, str]], folder: str) -> None:
     for i in range(len(methods_list)):
         filename = f"A{i}.java"
         with open(os.path.join(folder, filename), "w") as f:
-            f.write("public class A" + str(i) + "{\n")
+            f.write(f'public class A{i} {"{"}\n')
             f.write(methods_list[i]["code"])
             f.write("}\n")
 
@@ -103,7 +104,7 @@ def fine_tune_history(link: str, val_part: float, test_part: str, model_path: st
     model_folder = os.path.join("models", "history_fine_tuned", project_name)
     model_path, metrics_before, metrics_after = train_and_test(dataset_path, model_path, model_folder)
     print("Finished!")
-    print("___________________________________________________________________________________________")
+    print("_" * 30)
     print("Metrics before:", metrics_before)
     print("Metrics after:", metrics_after)
 
