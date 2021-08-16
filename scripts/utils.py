@@ -13,6 +13,8 @@ PREPROCESSED_DATASETS_DIR = "datasets"
 CLONED_REPOS_DIR = "cloned_repos"
 EXTRACTED_METHODS_DIR = "extracted_methods"
 PSIMINER_COMMIT_ID = "3487e323e7527bbe8cf3d483cb89fc0e9531a635"
+RESULTS_DIR = "results"
+EXPERIMENT_MODEL_DIR = os.path.join("models", "fine_tuning_experiments")
 
 
 class RunInDir:

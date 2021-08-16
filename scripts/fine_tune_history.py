@@ -1,40 +1,20 @@
 from argparse import ArgumentParser
 import os
 
-from scripts.clone_repo import clone_repo
-from scripts.mine_method_updates import run_comment_updater
-from scripts.split_mined_methods import split_dataset
 from .utils import PREPROCESSED_DATASETS_DIR
 from .load_tools import setup_comment_updater
-from .preprocess import preprocess_complete
 from .fine_tune import train_and_test
+from experiments.repos_to_code2seq import process_single_repo
 
 
 def fine_tune_history(link: str, val_part: float, test_part: str, model_path: str):
-    print("Cloning repo...")
-    project_name = clone_repo(link)
-    print("Cloned!")
-
-    print("Running update mining...")
-    run_comment_updater(project_name)
-    print("Mining completed!")
-
-    print("Extracting added methods...")
-    raw_dataset = split_dataset(project_name, val_part, test_part)
-    print("Extracted!")
-
-    print("Preprocessing raw java to .c2s...")
-    preprocess_complete(raw_dataset)
-    print("Preprocessing finished!")
+    project_name = process_single_repo(link, val_part, test_part)
 
     print("Model evaluating and trained...")
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
     model_folder = os.path.join("models", "history_fine_tuned", project_name)
-    model_path, metrics_before, metrics_after = train_and_test(dataset_path, model_folder, model_path)
+    train_and_test(dataset_path, model_folder, model_path)
     print("Finished!")
-    print("_" * 30)
-    print("Metrics before:", metrics_before)
-    print("Metrics after:", metrics_after)
 
 
 if __name__ == "__main__":

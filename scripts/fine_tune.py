@@ -37,9 +37,6 @@ def get_pretrained_model(model_path: str, dataset_path: str, batch_size: int = N
     checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
     config = checkpoint["hyper_parameters"]["config"]
     config.data_folder = dataset_path
-    if batch_size is not None:
-        config.batch_size = batch_size
-        config.test_batch_size = batch_size
     vocabulary = checkpoint["hyper_parameters"]["vocabulary"]
     model = Code2Seq.load_from_checkpoint(checkpoint_path=model_path)
     data_module = PathContextDataModule(config, vocabulary)
@@ -90,6 +87,11 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
     metrics_before = trainer.test(model=model, datamodule=data_module)
     trainer.fit(model=model, datamodule=data_module)
     metrics_after = trainer.test()
+
+    print("_" * 30)
+    print("Metrics before:", metrics_before)
+    print("Metrics after:", metrics_after)
+    print("_" * 30)
 
     return checkpoint_callback.best_model_path, metrics_before, metrics_after
 
