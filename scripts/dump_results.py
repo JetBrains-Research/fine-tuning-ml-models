@@ -26,8 +26,9 @@ def extract(
 
     if result_file is not None:
         f = open(result_file, "w")
+        serialization_needed = True
     else:
-        f = None
+        serialization_needed = False
     results = []
     for batch in datamodule.test_dataloader():
         logits = model(batch.contexts, batch.contexts_per_label, batch.labels.shape[0])
@@ -36,7 +37,7 @@ def extract(
             y_true_decode = "|".join(decode(y_true, id_to_label, ignore_index))
             y_pred_decode = "|".join(decode(y_pred, id_to_label, ignore_index))
             results.append((y_true_decode, y_pred_decode))
-            if f is not None:
+            if serialization_needed:
                 print(y_true_decode, y_pred_decode, file=f)
 
     return results

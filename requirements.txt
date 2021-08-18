@@ -7,3 +7,7 @@ wandb==0.10.20
 mypy==0.812
 hydra-core==1.0.6
 omegaconf==2.0.6
+nltk==3.5
+pandas==1.1.3
+pytest==6.1.1
+setuptools==50.3.1
