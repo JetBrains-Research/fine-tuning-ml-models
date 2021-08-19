@@ -5,6 +5,7 @@ from nltk import bleu, meteor
 from nltk.translate import chrf_score
 import numpy as np
 import pandas as pd
+from sacrebleu.metrics import BLEU, CHRF
 
 
 def prepare_nltk() -> None:
@@ -18,6 +19,18 @@ def prepare_nltk() -> None:
         nltk.download("wordnet")
 
 
+def calc_chrf(target: str, prediction: str) -> float:
+    chrf_metric = CHRF()
+    result = chrf_metric.sentence_score(prediction, [target])
+    return result.score
+
+
+def calc_bleu(target: str, prediction: str) -> float:
+    bleu_metric = BLEU(effective_order=True, smooth_method="add-k")
+    result = bleu_metric.sentence_score(prediction, [target])
+    return result.score
+
+
 def calculate_metrics(samples) -> pd.DataFrame:
     prepare_nltk()
 
@@ -29,9 +42,9 @@ def calculate_metrics(samples) -> pd.DataFrame:
         target, predicted = sample[0].split("|"), sample[1].split("|")
         target_sentence, predicted_sentence = " ".join(target), " ".join(predicted)
 
-        bleu_val = bleu([target], predicted)
+        bleu_val = calc_bleu(target_sentence, predicted_sentence)
         meteor_val = meteor([target_sentence], predicted_sentence)
-        chrf_val = chrf_score.sentence_chrf(target_sentence, predicted_sentence)
+        chrf_val = calc_chrf(target_sentence, predicted_sentence)
 
         bleus.append(bleu_val)
         meteors.append(meteor_val)
