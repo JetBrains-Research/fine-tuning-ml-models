@@ -19,7 +19,7 @@ def write_classes(methods_list: List[Dict[str, str]], folder: str) -> None:
             f.write("}\n")
 
 
-def split_dataset(project_name: str, val_part: float, test_part: str) -> str:
+def split_dataset(project_name: str, train_part: float) -> str:
     """Process data mined by CommentUpdater in order to separate in train, test and validation samples"""
 
     dataset_dir = os.path.join(EXTRACTED_METHODS_DIR, project_name)
@@ -32,24 +32,26 @@ def split_dataset(project_name: str, val_part: float, test_part: str) -> str:
     raw_samples = open(os.path.join(dataset_dir, f"{project_name}.jsonl"), "r")
     added_methods = [sample for sample in list(map(json.loads, raw_samples)) if sample["update"] == "ADD"]
     added_methods.sort(key=lambda method: method["commitTime"])
+    num_of_methods = len(added_methods)
 
-    num_of_val_methods = int(len(added_methods) * val_part)
-    num_of_test_methods = int(len(added_methods) * test_part)
-    val_methods = added_methods[num_of_test_methods : num_of_test_methods + num_of_val_methods]
-    test_methods = added_methods[:num_of_test_methods]
-    write_classes(val_methods, val_path)
-    write_classes(test_methods, test_path)
-
-    last_commit_time = val_methods[-1]["commitTime"]
-    snapshot_commit_id = ""
-    for i in range(num_of_test_methods + num_of_val_methods, len(added_methods)):
-        if added_methods[i]["commitTime"] > last_commit_time:
-            snapshot_commit_id = added_methods[i]["commitId"]
-
+    start_idx = int(train_part * num_of_methods) - 1
+    snapshot_commit = added_methods[start_idx]["commitId"]
     source_dir = os.path.join(CLONED_REPOS_DIR, project_name)
     repo = git.Repo(source_dir)
-    repo.head.reset(snapshot_commit_id, index=True, working_tree=True)
+    repo.head.reset(snapshot_commit, index=True, working_tree=True)
     copytree(source_dir, train_path)
+
+    new_idx = start_idx + 1
+    for idx in range(start_idx, num_of_methods):
+        if added_methods[idx]["commitId"] != snapshot_commit:
+            new_idx = idx
+            break
+
+    num_of_val_methods = (num_of_methods - new_idx) // 2
+    val_methods = added_methods[new_idx : new_idx + num_of_val_methods]
+    test_methods = added_methods[new_idx + num_of_val_methods :]
+    write_classes(val_methods, val_path)
+    write_classes(test_methods, test_path)
 
     return dataset_dir
 
@@ -57,11 +59,10 @@ def split_dataset(project_name: str, val_part: float, test_part: str) -> str:
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("project_name", type=str, help="A name of folder in extracted methods folder")
-    arg_parser.add_argument("val_part", type=float, help="Fraction of validation part")
-    arg_parser.add_argument("test_part", type=float, help="Fraction of test part")
+    arg_parser.add_argument("train_part", type=float, help="Fraction of train part")
 
     args = arg_parser.parse_args()
 
     setup_comment_updater()
 
-    split_dataset(args.project_link, args.val_part, args.test_part)
+    split_dataset(args.project_name, args.train_part)
