@@ -9,7 +9,7 @@ def setup_psiminer() -> None:
 
     if not os.path.exists(PSIMINER_DIR):
         link = "https://github.com/JetBrains-Research/psiminer.git"
-        git.Repo.clone_from(link, PSIMINER_DIR, multi_options=["--depth 1 -b master"])
+        git.Repo.clone_from(link, PSIMINER_DIR, multi_options=["--depth 1 -b psiminer_v2"])
 
         with RunInDir(PSIMINER_DIR):
             os.system("./gradlew clean build")

@@ -10,10 +10,9 @@ from .utils import PSIMINER_DIR, PREPROCESSED_DATASETS_DIR
 def fix_naming(dataset_path: str) -> None:
     """Remove useless datasets"""
 
-    train = os.path.join(dataset_path, "java-med-psi-no-types.train.c2s")
-    val = os.path.join(dataset_path, "java-med-psi-no-types.val.c2s")
-    os.remove(train)
-    os.remove(val)
+    old_name = os.path.join(dataset_path, "result.c2s")
+    new_name = os.path.join(dataset_path, "java-med-psi-no-types.test.c2s")
+    os.rename(old_name, new_name)
 
 
 def preprocess(project_path: str) -> None:
@@ -24,7 +23,7 @@ def preprocess(project_path: str) -> None:
     with tempfile.TemporaryDirectory(dir=".") as tmp:
         new_path = os.path.join(tmp, "test", project_name)
         copytree(project_path, new_path)
-        cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{tmp}" "{dataset_path}" configs/psiminer_config.json'
+        cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{tmp}" "{dataset_path}" configs/psiminer_v2_code2seq_config.json'
         os.system(cmd)
     fix_naming(dataset_path)
 
