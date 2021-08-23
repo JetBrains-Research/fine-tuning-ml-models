@@ -40,7 +40,7 @@ def evaluate_on_many_datasets(filename: str, model_path: str) -> None:
 
     with open(filename, "r") as projects_file:
         for project in projects_file:
-            run_models_and_save_results(project, model_path)
+            run_models_and_save_results(project.strip(), model_path)
 
 
 if __name__ == "__main__":
