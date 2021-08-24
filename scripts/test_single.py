@@ -1,10 +1,9 @@
 from argparse import ArgumentParser
 
-from .load_tools import setup_code2seq
+import torch
+from pytorch_lightning import Trainer
 
-setup_code2seq()
-
-from code2seq.test import test
+from .fine_tune import get_pretrained_model
 
 
 def get_only_metrics(results):
@@ -18,7 +17,11 @@ def get_only_metrics(results):
 def test_single(model_path: str, project_path: str):
     """Evaluate model"""
 
-    results = test(model_path, project_path, 1)
+    model, data_module, config, vocabulary = get_pretrained_model(model_path, project_path)
+    gpu = 1 if torch.cuda.is_available() else None
+    trainer = Trainer(gpus=gpu)
+    results = trainer.test(model, datamodule=data_module)
+
     return get_only_metrics(results[0])
 
 

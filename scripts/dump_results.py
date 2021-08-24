@@ -2,12 +2,7 @@ from argparse import ArgumentParser
 
 import torch
 
-from .load_tools import setup_code2seq
-
-setup_code2seq()
-
 from typing import List, Dict, Tuple
-from code2seq.utils.vocabulary import Vocabulary, SOS, EOS, PAD
 from .fine_tune import get_pretrained_model
 
 
@@ -22,6 +17,9 @@ def extract(
     model.eval()
 
     id_to_label = {v: k for k, v in vocabulary.label_to_id.items()}
+    PAD = "<PAD>"
+    SOS = "<SOS>"
+    EOS = "<EOS>"
     ignore_index = [vocabulary.label_to_id[i] for i in [SOS, EOS, PAD]]
 
     if result_file is not None:
@@ -31,7 +29,7 @@ def extract(
         serialization_needed = False
     results = []
     for batch in datamodule.test_dataloader():
-        logits = model(batch.contexts, batch.contexts_per_label, batch.labels.shape[0])
+        logits = model.logits_from_batch(batch, batch.labels)
         predictions = logits.argmax(-1)
         for y_true, y_pred in zip(batch.labels.t(), predictions.t()):
             y_true_decode = "|".join(decode(y_true, id_to_label, ignore_index))

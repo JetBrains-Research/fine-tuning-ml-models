@@ -4,10 +4,7 @@ import tempfile
 from shutil import copy
 
 from scripts.fine_tune import train_and_test
-from .load_tools import setup_code2seq
 from .utils import NO_TYPES_PATH
-
-setup_code2seq()
 
 
 def fine_tune_self(dataset_path: str, model_path: str, folds_number: int):

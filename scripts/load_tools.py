@@ -1,7 +1,6 @@
-import sys
 import git
 import os
-from .utils import CODE2SEQ_DIR, PSIMINER_DIR, COMMENT_UPDATER_DIR, PSIMINER_COMMIT_ID, RunInDir
+from .utils import PSIMINER_DIR, COMMENT_UPDATER_DIR, PSIMINER_COMMIT_ID, RunInDir
 
 
 def setup_psiminer() -> None:
@@ -16,20 +15,6 @@ def setup_psiminer() -> None:
             os.system("./gradlew clean build")
 
 
-def add_path_code2seq() -> None:
-    sys.path.append(CODE2SEQ_DIR)
-    sys.path.append(os.path.join(CODE2SEQ_DIR, "code2seq"))
-
-
-def setup_code2seq() -> None:
-    """Load code2seq if needed and add it to path"""
-
-    if not os.path.exists(CODE2SEQ_DIR):
-        link = "https://github.com/JetBrains-Research/code2seq.git"
-        git.Repo.clone_from(link, CODE2SEQ_DIR, multi_options=["--depth 1 -b test-results-serialization"])
-    add_path_code2seq()
-
-
 def setup_comment_updater() -> None:
     """Load CommentUpdater if needed"""
 
@@ -40,5 +25,4 @@ def setup_comment_updater() -> None:
 
 if __name__ == "__main__":
     setup_psiminer()
-    setup_code2seq()
     setup_comment_updater()

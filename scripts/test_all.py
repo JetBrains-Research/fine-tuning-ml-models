@@ -3,7 +3,7 @@ import csv
 from argparse import ArgumentParser
 from .preprocess import preprocess_single
 from .test_single import test_single
-from .load_tools import setup_psiminer, setup_code2seq
+from .load_tools import setup_psiminer
 from .utils import PREPROCESSED_DATASETS_DIR
 
 
@@ -22,10 +22,7 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
         writer.writeheader()
         for project_name in project_names:
             print(project_name)
-            try:
-                metrics = test_single(model_path, os.path.join(PREPROCESSED_DATASETS_DIR, project_name))
-            except:
-                metrics = [-1, -1, -1, -1]
+            metrics = test_single(model_path, os.path.join(PREPROCESSED_DATASETS_DIR, project_name))
             row = {"Project": project_name}
             for i in range(1, len(header)):
                 row[header[i]] = metrics[i - 1]
@@ -42,5 +39,4 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     setup_psiminer()
-    setup_code2seq()
     test_all(args.dataset, args.model, args.results)

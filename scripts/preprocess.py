@@ -4,18 +4,7 @@ from argparse import ArgumentParser
 from shutil import copytree
 
 from .load_tools import setup_psiminer
-from .utils import PSIMINER_DIR, PREPROCESSED_DATASETS_DIR, PSIMINER_CONFIG, NO_TYPES_PATH
-
-
-def fix_naming(dataset_path: str) -> None:
-    """Fix names for code2seq compatability"""
-
-    for old_name in os.listdir(dataset_path):
-        if old_name == "nodes_vocabulary.csv":
-            continue
-        old_path = os.path.join(dataset_path, old_name)
-        new_path = os.path.join(dataset_path, f"{NO_TYPES_PATH}.{old_name}")
-        os.rename(old_path, new_path)
+from .utils import PSIMINER_DIR, PREPROCESSED_DATASETS_DIR, PSIMINER_CONFIG
 
 
 def run_psiminer(source_folder: str, destination_folder: str) -> None:
@@ -23,7 +12,6 @@ def run_psiminer(source_folder: str, destination_folder: str) -> None:
 
     cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{source_folder}" "{destination_folder}" {PSIMINER_CONFIG}'
     os.system(cmd)
-    fix_naming(destination_folder)
 
 
 def preprocess_complete(project_path: str) -> None:
@@ -31,7 +19,7 @@ def preprocess_complete(project_path: str) -> None:
 
     setup_psiminer()
     project_name = os.path.basename(os.path.normpath(project_path))
-    dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name, NO_TYPES_PATH)
+    dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
     run_psiminer(project_path, dataset_path)
 
 

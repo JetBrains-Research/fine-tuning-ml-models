@@ -7,8 +7,8 @@ from .fine_tune import train_and_test
 from experiments.repos_to_code2seq import process_single_repo
 
 
-def fine_tune_history(link: str, val_part: float, test_part: str, model_path: str):
-    project_name = process_single_repo(link, val_part, test_part)
+def fine_tune_history(link: str, train_part: float, model_path: str):
+    project_name = process_single_repo(link, train_part)
 
     print("Model evaluating and trained...")
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
@@ -20,8 +20,7 @@ def fine_tune_history(link: str, val_part: float, test_part: str, model_path: st
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("project_link", type=str, help="A .git link to clone project with all history")
-    arg_parser.add_argument("val_part", type=float, help="Fraction of validation part")
-    arg_parser.add_argument("test_part", type=float, help="Fraction of test part")
+    arg_parser.add_argument("train_part", type=float, help="Fraction of train part")
     arg_parser.add_argument(
         "--model", type=str, help="Already trained model to be fine-tuned", default=None, required=False
     )
@@ -30,4 +29,4 @@ if __name__ == "__main__":
 
     setup_comment_updater()
 
-    fine_tune_history(args.project_link, args.val_part, args.test_part, args.model)
+    fine_tune_history(args.project_link, args.train_part, args.model)
