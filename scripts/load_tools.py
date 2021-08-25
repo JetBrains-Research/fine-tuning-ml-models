@@ -19,7 +19,7 @@ def setup_comment_updater() -> None:
     """Load CommentUpdater if needed"""
 
     if not os.path.exists(COMMENT_UPDATER_DIR):
-        link = "https://github.com/malodetz/CommentUpdater.git"
+        link = "https://github.com/egor-bogomolov/MethodUpdateMiner.git"
         git.Repo.clone_from(link, COMMENT_UPDATER_DIR, multi_options=["--depth 1 -b dev-postprocessing"])
 
 
