@@ -27,7 +27,7 @@ def extract(checkpoint_path: str, data_folder: str, result_file: str = None) -> 
         serialization_needed = False
     results = []
     for batch in datamodule.test_dataloader():
-        logits = model.logits_from_batch(batch, batch.labels)
+        logits = model.logits_from_batch(batch, None)
         with torch.no_grad():
             predictions = logits.argmax(-1)
         for y_true, y_pred in zip(batch.labels.t(), predictions.t()):
