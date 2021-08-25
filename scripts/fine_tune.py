@@ -69,7 +69,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
     checkpoint_callback = ModelCheckpoint(
         dirpath=model_folder,
         every_n_epochs=params.save_every_epoch,
-        monitor="val_loss",
+        monitor="val/loss",
         save_top_k=1,
     )
 
