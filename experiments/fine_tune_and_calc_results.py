@@ -19,20 +19,20 @@ def run_models_and_save_results(project_name: str, model_path: str) -> None:
     new_path, new_before, new_after = train_and_test(dataset_path, new_model_folder)
     with open(os.path.join(result_folder, "new_after.jsonl"), "w") as f:
         print(*new_after, file=f)
-    new_after_names = extract(new_path, dataset_path, os.path.join(result_folder, "new_after_names.txt"))
-    calculate_and_dump_metrics(new_after_names, os.path.join(result_folder, "new_after_metrics.csv"))
+    # new_after_names = extract(new_path, dataset_path, os.path.join(result_folder, "new_after_names.txt"))
+    # calculate_and_dump_metrics(new_after_names, os.path.join(result_folder, "new_after_metrics.csv"))
 
     trained_model_folder = os.path.join(EXPERIMENT_MODEL_DIR, run_name, "trained")
     os.makedirs(trained_model_folder)
     trained_path, trained_before, trained_after = train_and_test(dataset_path, trained_model_folder, model_path)
     with open(os.path.join(result_folder, "trained_before.jsonl"), "w") as f:
         print(*trained_before, file=f)
-    trained_before_names = extract(model_path, dataset_path, os.path.join(result_folder, "trained_before_names.txt"))
-    calculate_and_dump_metrics(trained_before_names, os.path.join(result_folder, "trained_before_metrics.csv"))
+    # trained_before_names = extract(model_path, dataset_path, os.path.join(result_folder, "trained_before_names.txt"))
+    # calculate_and_dump_metrics(trained_before_names, os.path.join(result_folder, "trained_before_metrics.csv"))
     with open(os.path.join(result_folder, "trained_after.jsonl"), "w") as f:
         print(*trained_after, file=f)
-    trained_after_names = extract(trained_path, dataset_path, os.path.join(result_folder, "trained_after_names.txt"))
-    calculate_and_dump_metrics(trained_after_names, os.path.join(result_folder, "trained_after_metrics.csv"))
+    # trained_after_names = extract(trained_path, dataset_path, os.path.join(result_folder, "trained_after_names.txt"))
+    # calculate_and_dump_metrics(trained_after_names, os.path.join(result_folder, "trained_after_metrics.csv"))
 
 
 def evaluate_on_many_datasets(filename: str, model_path: str) -> None:
