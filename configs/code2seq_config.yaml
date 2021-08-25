@@ -47,7 +47,7 @@ optimizer:
   decay_gamma: 0.95
 
 train:
-  n_epochs: 10
+  n_epochs: 1000
   patience: 10
   clip_norm: 5
   teacher_forcing: 1.0
