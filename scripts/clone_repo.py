@@ -13,8 +13,9 @@ def clone_repo(link: str) -> str:
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
-    arg_parser.add_argument("project_link", type=str, help="A .git link to clone project with all history")
+    arg_parser.add_argument("project_links", type=str, help="A file with .git links to clone project with all history")
 
     args = arg_parser.parse_args()
-
-    clone_repo(args.project_link)
+    with open(args.project_links, "r") as f:
+        for link in f:
+            clone_repo(link)
