@@ -19,6 +19,17 @@ def write_classes(methods_list: List[Dict[str, str]], folder: str) -> None:
             f.write("}\n")
 
 
+def filter_duplicates(methods: List) -> List:
+    raw_codes = set()
+    filtered = []
+    for method in methods:
+        clear_code = "".join(method["code"].split())
+        if clear_code not in raw_codes:
+            filtered.append(method)
+            raw_codes.add(clear_code)
+    return filtered
+
+
 def split_dataset(project_name: str, train_part: float) -> str:
     """Process data mined by CommentUpdater in order to separate in train, test and validation samples"""
 
@@ -32,6 +43,7 @@ def split_dataset(project_name: str, train_part: float) -> str:
     raw_samples = open(os.path.join(dataset_dir, f"{project_name}.jsonl"), "r")
     added_methods = [sample for sample in list(map(json.loads, raw_samples)) if sample["update"] == "ADD"]
     added_methods.sort(key=lambda method: method["commitTime"])
+    added_methods = filter_duplicates(added_methods)
     num_of_methods = len(added_methods)
 
     start_idx = int(train_part * num_of_methods) - 1
