@@ -28,7 +28,8 @@ def extract(checkpoint_path: str, data_folder: str, result_file: str = None) -> 
     results = []
     for batch in datamodule.test_dataloader():
         logits = model.logits_from_batch(batch, batch.labels)
-        predictions = logits.argmax(-1)
+        with torch.no_grad():
+            predictions = logits.argmax(-1)
         for y_true, y_pred in zip(batch.labels.t(), predictions.t()):
             y_true_decode = "|".join(decode(y_true, id_to_label, ignore_index))
             y_pred_decode = "|".join(decode(y_pred, id_to_label, ignore_index))
