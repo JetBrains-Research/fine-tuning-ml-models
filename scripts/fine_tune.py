@@ -1,23 +1,39 @@
 from argparse import ArgumentParser
-from typing import Tuple, Any
+from typing import Tuple, Any, Optional
 
 import torch
+from os.path import join
 from commode_utils.callback import PrintEpochResultCallback
 from omegaconf import DictConfig, OmegaConf
 from code2seq.data.path_context_data_module import PathContextDataModule
 from code2seq.model import Code2Seq
+from code2seq.data.vocabulary import Vocabulary, build_from_scratch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 
-from .utils import CODE2SEQ_CONFIG
+from .utils import CODE2SEQ_CONFIG, CODE2SEQ_VOCABULARY
 
 
-def get_config_data_module_vocabulary(dataset_path: str):
+class CustomVocabularyDataModule(PathContextDataModule):
+    def __init__(self, data_dir: str, config: DictConfig, vocabulary_path: str = None, is_class: bool = False):
+        super().__init__(data_dir, config, is_class)
+        self._vocabulary_path = vocabulary_path
+
+    def setup(self, stage: Optional[str] = None):
+        if self._vocabulary_path is None:
+            print("Can't find vocabulary, building")
+            build_from_scratch(join(self._data_dir, f"{self._train}.c2s"), Vocabulary)
+            vocabulary_path = join(self._data_dir, Vocabulary.vocab_filename)
+        else:
+            vocabulary_path = self._vocabulary_path
+        self._vocabulary = Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens, self._is_class)
+
+
+def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
     config = DictConfig(OmegaConf.load(CODE2SEQ_CONFIG))
     config.data_folder = dataset_path
 
-    data_module = PathContextDataModule(config.data_folder, config.data)
-    data_module.prepare_data()
+    data_module = CustomVocabularyDataModule(config.data_folder, config.data, vocabulary_path)
     data_module.setup()
 
     return config, data_module, data_module.vocabulary
@@ -31,8 +47,8 @@ def get_untrained_model(dataset_path: str):
     return model, data_module, config, data_module.vocabulary
 
 
-def get_pretrained_model(model_path: str, dataset_path: str, batch_size: int = None):
-    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path)
+def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: str = CODE2SEQ_VOCABULARY):
+    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, vocabulary_path)
 
     model = Code2Seq.load_from_checkpoint(model_path, map_location=torch.device("cpu"))
 
