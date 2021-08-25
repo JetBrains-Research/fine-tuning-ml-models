@@ -22,6 +22,11 @@ def preprocess_complete(project_path: str) -> None:
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
     run_psiminer(project_path, dataset_path)
 
+    for file in ["train.c2s", "val.c2s", "test.c2s"]:
+        file_path = os.path.join(dataset_path, file)
+        if not os.path.exists(file_path):
+            open(file_path, "a").close()
+
 
 def preprocess_single(project_path: str) -> None:
     """Transform project into test data for code2seq via psiminer"""

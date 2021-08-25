@@ -22,7 +22,10 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
         writer.writeheader()
         for project_name in project_names:
             print(project_name)
-            metrics = test_single(model_path, os.path.join(PREPROCESSED_DATASETS_DIR, project_name))
+            try:
+                metrics = test_single(model_path, os.path.join(PREPROCESSED_DATASETS_DIR, project_name))
+            except:
+                metrics = [-1, -1, -1, -1]
             row = {"Project": project_name}
             for i in range(1, len(header)):
                 row[header[i]] = metrics[i - 1]
