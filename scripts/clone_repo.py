@@ -18,4 +18,4 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
     with open(args.project_links, "r") as f:
         for link in f:
-            clone_repo(link)
+            clone_repo(link.strip())
