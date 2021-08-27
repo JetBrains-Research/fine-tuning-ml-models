@@ -48,6 +48,9 @@ def get_untrained_model(dataset_path: str):
 
 
 def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: str = CODE2SEQ_VOCABULARY):
+    if vocabulary_path is None:
+        vocabulary_path = CODE2SEQ_VOCABULARY
+
     config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, vocabulary_path)
 
     model = Code2Seq.load_from_checkpoint(model_path, map_location=torch.device("cpu"))
