@@ -14,6 +14,40 @@ def run_psiminer(source_folder: str, destination_folder: str) -> None:
     os.system(cmd)
 
 
+def fix_c2s(dataset_path: str) -> None:
+    for file in ["train.c2s", "val.c2s", "test.c2s"]:
+        file_path = os.path.join(dataset_path, file)
+        if not os.path.exists(file_path):
+            open(file_path, "a").close()
+
+    with open(os.path.join(dataset_path, "train.c2s"), "r") as train:
+        train_samples_set = set("".join(sorted(sample.split())) for sample in train)
+
+    val_samples = []
+    with open(os.path.join(dataset_path, "val.c2s"), "r") as val:
+        for sample in val:
+            paths = "".join(sorted(sample.split()))
+            if paths not in train_samples_set:
+                val_samples.append(sample)
+    with open(os.path.join(dataset_path, "val.c2s"), "w") as val:
+        val.writelines(val_samples)
+    val_samples_set = set(val_samples)
+
+    test_samples = []
+    with open(os.path.join(dataset_path, "test.c2s"), "r") as test:
+        for sample in test:
+            paths = "".join(sorted(sample.split()))
+            if paths not in train_samples_set and paths not in val_samples_set:
+                test_samples.append(sample)
+    with open(os.path.join(dataset_path, "test.c2s"), "w") as test:
+        test.writelines(test_samples)
+    test_samples_set = set(test_samples)
+
+    print("Train:", len(train_samples_set))
+    print("Val:", len(val_samples_set))
+    print("Test:", len(test_samples_set))
+
+
 def preprocess_complete(project_path: str) -> None:
     """Transform project into test, train and val data for code2seq"""
 
@@ -21,11 +55,7 @@ def preprocess_complete(project_path: str) -> None:
     project_name = os.path.basename(os.path.normpath(project_path))
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
     run_psiminer(project_path, dataset_path)
-
-    for file in ["train.c2s", "val.c2s", "test.c2s"]:
-        file_path = os.path.join(dataset_path, file)
-        if not os.path.exists(file_path):
-            open(file_path, "a").close()
+    fix_c2s(dataset_path)
 
 
 def preprocess_single(project_path: str) -> None:
