@@ -47,7 +47,7 @@ def get_untrained_model(dataset_path: str):
     return model, data_module, config, data_module.vocabulary
 
 
-def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: str = CODE2SEQ_VOCABULARY):
+def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: Optional[str] = CODE2SEQ_VOCABULARY):
     if vocabulary_path is None:
         vocabulary_path = CODE2SEQ_VOCABULARY
 
