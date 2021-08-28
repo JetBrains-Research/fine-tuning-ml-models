@@ -24,24 +24,26 @@ def fix_c2s(dataset_path: str) -> None:
         train_samples_set = set("".join(sorted(sample.split())) for sample in train)
 
     val_samples = []
+    val_samples_set = set()
     with open(os.path.join(dataset_path, "val.c2s"), "r") as val:
         for sample in val:
             paths = "".join(sorted(sample.split()))
             if paths not in train_samples_set:
                 val_samples.append(sample)
+                val_samples_set.add(paths)
     with open(os.path.join(dataset_path, "val.c2s"), "w") as val:
         val.writelines(val_samples)
-    val_samples_set = set(val_samples)
 
     test_samples = []
+    test_samples_set = set()
     with open(os.path.join(dataset_path, "test.c2s"), "r") as test:
         for sample in test:
             paths = "".join(sorted(sample.split()))
             if paths not in train_samples_set and paths not in val_samples_set:
                 test_samples.append(sample)
+                test_samples_set.add(paths)
     with open(os.path.join(dataset_path, "test.c2s"), "w") as test:
         test.writelines(test_samples)
-    test_samples_set = set(test_samples)
 
     print("Train:", len(train_samples_set))
     print("Val:", len(val_samples_set))
@@ -74,8 +76,10 @@ def preprocess_single(project_path: str) -> None:
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
-    arg_parser.add_argument("project", type=str, help="Path to project's files to be preprocessed")
+    arg_parser.add_argument("projects", type=str, help="Path to file with projects to be preprocessed")
 
     args = arg_parser.parse_args()
 
-    preprocess_single(args.project)
+    with open(args.projects, "r") as projects:
+        for project in projects:
+            preprocess_complete(project.strip())

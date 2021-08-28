@@ -70,11 +70,13 @@ def split_dataset(project_name: str, train_part: float) -> str:
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
-    arg_parser.add_argument("project_name", type=str, help="A name of folder in extracted methods folder")
+    arg_parser.add_argument("project_names", type=str, help="A list of projects preprocessed via CommentUpdater")
     arg_parser.add_argument("train_part", type=float, help="Fraction of train part")
 
     args = arg_parser.parse_args()
 
     setup_comment_updater()
 
-    split_dataset(args.project_name, args.train_part)
+    with open(args.project_names, "r") as projects:
+        for project in projects:
+            split_dataset(project.strip(), args.train_part)
