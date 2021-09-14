@@ -27,8 +27,10 @@ def run_comment_updater(project_name: str) -> None:
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
-    arg_parser.add_argument("project_name", type=str, help="Name of project in cloned_repos folder")
+    arg_parser.add_argument("project_names", type=str, help="File with names of projects in cloned_repos folder")
 
     args = arg_parser.parse_args()
 
-    run_comment_updater(args.project_name)
+    with open(args.project_names, "r") as names:
+        for name in names:
+            run_comment_updater(name.strip())
