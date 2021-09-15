@@ -11,7 +11,7 @@ def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List
 
 
 def extract(
-        checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
+    checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
 ) -> List[Tuple[str, str]]:
     model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder, vocabulary_path)
     model.eval()
