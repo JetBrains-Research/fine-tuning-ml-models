@@ -1,6 +1,8 @@
 import os
 import tempfile
+import json
 from argparse import ArgumentParser
+from typing import List
 from shutil import copytree
 
 from .load_tools import setup_psiminer
@@ -12,6 +14,22 @@ def add_missing_files(dataset_path: str, extension: str) -> None:
         file_path = os.path.join(dataset_path, file)
         if not os.path.exists(file_path):
             open(file_path, "a").close()
+
+
+def dfs(vertex, tree: List) -> str:
+    subtree = "{"
+    vertex_tokens = f"{vertex['token']},{vertex['nodeType']},{vertex['tokenType']}"
+    subtree += vertex_tokens
+    for child in vertex["children"]:
+        subtree += dfs(tree[child], tree)
+    subtree += "}"
+    return subtree
+
+
+def sample_to_string(sample: str) -> str:
+    tree = json.loads(sample)["tree"]
+    ans = dfs(tree[0], tree)
+    return ans
 
 
 def fix_c2s(dataset_path: str) -> None:
@@ -50,7 +68,34 @@ def fix_c2s(dataset_path: str) -> None:
 def fix_jsonl(dataset_path: str) -> None:
     add_missing_files(dataset_path, "jsonl")
 
-    # TODO: duplicates filtering
+    with open(os.path.join(dataset_path, "train.jsonl"), "r") as train:
+        train_samples_set = set(sample_to_string(sample) for sample in train)
+
+    val_samples = []
+    val_samples_set = set()
+    with open(os.path.join(dataset_path, "val.jsonl"), "r") as val:
+        for sample in val:
+            paths = sample_to_string(sample)
+            if paths not in train_samples_set:
+                val_samples.append(sample)
+                val_samples_set.add(paths)
+    with open(os.path.join(dataset_path, "val.jsonl"), "w") as val:
+        val.writelines(val_samples)
+
+    test_samples = []
+    test_samples_set = set()
+    with open(os.path.join(dataset_path, "test.jsonl"), "r") as test:
+        for sample in test:
+            paths = sample_to_string(sample)
+            if paths not in train_samples_set and paths not in val_samples_set:
+                test_samples.append(sample)
+                test_samples_set.add(paths)
+    with open(os.path.join(dataset_path, "test.jsonl"), "w") as test:
+        test.writelines(test_samples)
+
+    print("Train:", len(train_samples_set))
+    print("Val:", len(val_samples_set))
+    print("Test:", len(test_samples_set))
 
 
 def run_psiminer(source_folder: str, destination_folder: str, model_type: str) -> None:
