@@ -26,71 +26,42 @@ def dfs(vertex, tree: List) -> str:
     return subtree
 
 
-def sample_to_string(sample: str) -> str:
-    tree = json.loads(sample)["tree"]
-    ans = dfs(tree[0], tree)
-    return ans
+def sample_to_string(sample: str, extension: str) -> str:
+    if extension == "c2s":
+        return "".join(sorted(sample.split()))
+    elif extension == "jsonl":
+        tree = json.loads(sample)["tree"]
+        return dfs(tree[0], tree)
+    else:
+        raise ValueError("Unknown extension")
 
 
-def fix_c2s(dataset_path: str) -> None:
-    add_missing_files(dataset_path, "c2s")
+def fix_output(dataset_path: str, extension: str) -> None:
+    add_missing_files(dataset_path, extension)
 
-    with open(os.path.join(dataset_path, "train.c2s"), "r") as train:
-        train_samples_set = set("".join(sorted(sample.split())) for sample in train)
+    with open(os.path.join(dataset_path, f"train.{extension}"), "r") as train:
+        train_samples_set = set(sample_to_string(sample, extension) for sample in train)
 
     val_samples = []
     val_samples_set = set()
-    with open(os.path.join(dataset_path, "val.c2s"), "r") as val:
+    with open(os.path.join(dataset_path, f"val.{extension}"), "r") as val:
         for sample in val:
-            paths = "".join(sorted(sample.split()))
+            paths = sample_to_string(sample, extension)
             if paths not in train_samples_set:
                 val_samples.append(sample)
                 val_samples_set.add(paths)
-    with open(os.path.join(dataset_path, "val.c2s"), "w") as val:
+    with open(os.path.join(dataset_path, f"val.{extension}"), "w") as val:
         val.writelines(val_samples)
 
     test_samples = []
     test_samples_set = set()
-    with open(os.path.join(dataset_path, "test.c2s"), "r") as test:
+    with open(os.path.join(dataset_path, f"test.{extension}"), "r") as test:
         for sample in test:
-            paths = "".join(sorted(sample.split()))
+            paths = sample_to_string(sample, extension)
             if paths not in train_samples_set and paths not in val_samples_set:
                 test_samples.append(sample)
                 test_samples_set.add(paths)
-    with open(os.path.join(dataset_path, "test.c2s"), "w") as test:
-        test.writelines(test_samples)
-
-    print("Train:", len(train_samples_set))
-    print("Val:", len(val_samples_set))
-    print("Test:", len(test_samples_set))
-
-
-def fix_jsonl(dataset_path: str) -> None:
-    add_missing_files(dataset_path, "jsonl")
-
-    with open(os.path.join(dataset_path, "train.jsonl"), "r") as train:
-        train_samples_set = set(sample_to_string(sample) for sample in train)
-
-    val_samples = []
-    val_samples_set = set()
-    with open(os.path.join(dataset_path, "val.jsonl"), "r") as val:
-        for sample in val:
-            paths = sample_to_string(sample)
-            if paths not in train_samples_set:
-                val_samples.append(sample)
-                val_samples_set.add(paths)
-    with open(os.path.join(dataset_path, "val.jsonl"), "w") as val:
-        val.writelines(val_samples)
-
-    test_samples = []
-    test_samples_set = set()
-    with open(os.path.join(dataset_path, "test.jsonl"), "r") as test:
-        for sample in test:
-            paths = sample_to_string(sample)
-            if paths not in train_samples_set and paths not in val_samples_set:
-                test_samples.append(sample)
-                test_samples_set.add(paths)
-    with open(os.path.join(dataset_path, "test.jsonl"), "w") as test:
+    with open(os.path.join(dataset_path, f"test.{extension}"), "w") as test:
         test.writelines(test_samples)
 
     print("Train:", len(train_samples_set))
@@ -104,11 +75,11 @@ def run_psiminer(source_folder: str, destination_folder: str, model_type: str) -
     if model_type == "code2seq":
         cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{source_folder}" "{destination_folder}" {PSIMINER_CODE2SEQ_CONFIG}'
         os.system(cmd)
-        fix_c2s(destination_folder)
+        fix_output(destination_folder, "c2s")
     elif model_type == "treelstm":
         cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{source_folder}" "{destination_folder}" {PSIMINER_TREELSTM_CONFIG}'
         os.system(cmd)
-        fix_jsonl(destination_folder)
+        fix_output(destination_folder, "jsonl")
     else:
         raise ValueError("Unknown model")
 
