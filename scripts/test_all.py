@@ -1,9 +1,9 @@
 import os
 import csv
 from argparse import ArgumentParser
-from .preprocess import preprocess
+from .preprocess import preprocess_single
 from .test_single import test_single
-from .load_tools import setup_psiminer, setup_code2seq
+from .load_tools import setup_psiminer
 from .utils import PREPROCESSED_DATASETS_DIR
 
 
@@ -12,7 +12,7 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
 
     project_names = os.listdir(dataset_path)
     for project_name in project_names:
-        preprocess(os.path.join(dataset_path, project_name))
+        preprocess_single(os.path.join(dataset_path, project_name))
 
     project_names = os.listdir(PREPROCESSED_DATASETS_DIR)
     result_file = os.path.join(results_path, "results.csv")
@@ -41,5 +41,4 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     setup_psiminer()
-    setup_code2seq()
     test_all(args.dataset, args.model, args.results)

@@ -4,9 +4,18 @@
       "name": "constructor"
     },
     {
+      "name": "empty method"
+    },
+    {
       "name": "by modifiers",
       "excludeModifiers": [
         "abstract"
+      ]
+    },
+    {
+      "name": "by annotations",
+      "excludeAnnotations": [
+        "Override"
       ]
     }
   ],

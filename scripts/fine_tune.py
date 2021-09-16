@@ -1,122 +1,123 @@
 from argparse import ArgumentParser
-import os
-import tempfile
-from shutil import copy
-from typing import Tuple
+from typing import Tuple, Any, Optional
 
 import torch
-from omegaconf import DictConfig
-from pytorch_lightning import seed_everything, Trainer, LightningModule, LightningDataModule
+from os.path import join
+from commode_utils.callback import PrintEpochResultCallback
+from omegaconf import DictConfig, OmegaConf
+from code2seq.data.path_context_data_module import PathContextDataModule
+from code2seq.model import Code2Seq
+from code2seq.data.vocabulary import Vocabulary, build_from_scratch
+from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 
-from .load_tools import setup_code2seq
-from .utils import NO_TYPES_PATH
-
-setup_code2seq()
-
-from code2seq.dataset import PathContextDataModule, TypedPathContextDataModule
-from code2seq.model import Code2Seq, Code2Class, TypedCode2Seq
-from code2seq.utils.callback import UploadCheckpointCallback, PrintEpochResultCallback
-from code2seq.utils.vocabulary import Vocabulary
-from code2seq.test import KNOWN_MODELS
-
-from .test_single import test_single
+from .utils import CODE2SEQ_CONFIG, CODE2SEQ_VOCABULARY
 
 
-def get_model(model_path: str, config, vocabulary):
-    if config.name not in KNOWN_MODELS:
-        print(f"Unknown model {config.name}, try one of {' '.join(KNOWN_MODELS.keys())}")
-        exit(1)
+class CustomVocabularyDataModule(PathContextDataModule):
+    def __init__(self, data_dir: str, config: DictConfig, vocabulary_path: str = None, is_class: bool = False):
+        super().__init__(data_dir, config, is_class)
+        self._vocabulary_path = vocabulary_path
 
-    return KNOWN_MODELS[config.name](model_path, config, vocabulary)
+    def setup(self, stage: Optional[str] = None):
+        if self._vocabulary_path is None:
+            print("Can't find vocabulary, building")
+            build_from_scratch(join(self._data_dir, f"{self._train}.c2s"), Vocabulary)
+            vocabulary_path = join(self._data_dir, Vocabulary.vocab_filename)
+        else:
+            vocabulary_path = self._vocabulary_path
+        self._vocabulary = Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens, self._is_class)
 
 
-def train_and_test(dataset_path: str, model_path: str, project_name: str, fold_idx: int) -> str:
+def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
+    config = DictConfig(OmegaConf.load(CODE2SEQ_CONFIG))
+    config.data_folder = dataset_path
+
+    data_module = CustomVocabularyDataModule(config.data_folder, config.data, vocabulary_path)
+    data_module.setup()
+
+    return config, data_module, data_module.vocabulary
+
+
+def get_untrained_model(dataset_path: str):
+    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path)
+
+    model = Code2Seq(config.model, config.optimizer, data_module.vocabulary, config.train.teacher_forcing)
+
+    return model, data_module, config, data_module.vocabulary
+
+
+def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: Optional[str] = CODE2SEQ_VOCABULARY):
+    if vocabulary_path is None:
+        vocabulary_path = CODE2SEQ_VOCABULARY
+
+    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, vocabulary_path)
+
+    model = Code2Seq.load_from_checkpoint(model_path, map_location=torch.device("cpu"))
+
+    return model, data_module, config, vocabulary
+
+
+def train_and_test(dataset_path: str, model_folder: str, model_path: str = None) -> Tuple[str, Any, Any]:
     """Trains model and return a path to best checkpoint"""
 
-    checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
-    config = checkpoint["hyper_parameters"]["config"]
-    vocabulary = checkpoint["hyper_parameters"]["vocabulary"]
-    config.data_folder = dataset_path
-    model, data_module = get_model(model_path, config, vocabulary)
+    if model_path is not None:
+        model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path)
+    else:
+        model, data_module, config, vocabulary = get_untrained_model(dataset_path)
+
+    params = config.train
 
     # define model checkpoint callback
     checkpoint_callback = ModelCheckpoint(
-        dirpath=os.path.join("models", "fine_tuned", project_name, str(fold_idx)),
-        period=config.save_every_epoch,
-        monitor="val_loss",
+        dirpath=model_folder,
+        every_n_epochs=params.save_every_epoch,
+        monitor="val/loss",
         save_top_k=1,
     )
 
     # define other callbacks
-    early_stopping_callback = EarlyStopping(
-        patience=config.hyper_parameters.patience, monitor="val_loss", verbose=True, mode="min"
-    )
-    print_epoch_result_callback = PrintEpochResultCallback("train", "val")
+    early_stopping_callback = EarlyStopping(patience=params.patience, monitor="val/loss", verbose=True, mode="min")
+    print_epoch_result_callback = PrintEpochResultCallback(after_train=True, after_validation=True)
     lr_logger = LearningRateMonitor("step")
 
     gpu = 1 if torch.cuda.is_available() else None
     trainer = Trainer(
-        max_epochs=config.hyper_parameters.n_epochs,
-        gradient_clip_val=config.hyper_parameters.clip_norm,
+        max_epochs=params.n_epochs,
+        gradient_clip_val=params.clip_norm,
         deterministic=True,
-        check_val_every_n_epoch=config.val_every_epoch,
-        log_every_n_steps=config.log_every_epoch,
+        check_val_every_n_epoch=params.val_every_epoch,
+        log_every_n_steps=params.log_every_n_steps,
         gpus=gpu,
         progress_bar_refresh_rate=config.progress_bar_refresh_rate,
         callbacks=[
-            checkpoint_callback,
             lr_logger,
             early_stopping_callback,
+            checkpoint_callback,
             print_epoch_result_callback,
         ],
         resume_from_checkpoint=model_path,
     )
 
+    metrics_before = trainer.test(model=model, datamodule=data_module)
     trainer.fit(model=model, datamodule=data_module)
-    trainer.test()
+    metrics_after = trainer.test()
 
-    return checkpoint_callback.best_model_path
+    print("_" * 30)
+    print("Metrics before:", metrics_before)
+    print("Metrics after:", metrics_after)
+    print("_" * 30)
 
-
-def fine_tune(dataset_path: str, model_path: str, folds_number: int):
-    """Do k-fold cross-validation and compare quality metrics before and after fine-tuning"""
-
-    project_name = os.path.basename(os.path.normpath(dataset_path))
-    start_path = os.path.join(dataset_path, NO_TYPES_PATH)
-    dataset = open(os.path.join(start_path, f"{NO_TYPES_PATH}.test.c2s"), "r")
-    samples = dataset.readlines()
-    folds_number += 1
-    fold_size = len(samples) // folds_number
-
-    with tempfile.TemporaryDirectory(dir=".") as tmp, open("results.txt", "w") as result_file:
-        for i in range(folds_number - 1):
-            preprocessed_path = os.path.join(tmp, str(i + 1))
-            fold_path = os.path.join(preprocessed_path, NO_TYPES_PATH)
-            os.makedirs(fold_path)
-            copy(os.path.join(start_path, "nodes_vocabulary.csv"), fold_path)
-
-            with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.train.c2s"), "w+") as train:
-                train.writelines(samples[: i * fold_size])
-                train.writelines(samples[(i + 2) * fold_size :])
-
-            with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.val.c2s"), "w+") as val:
-                val.writelines(samples[(i + 1) * fold_size : (i + 2) * fold_size])
-
-            with open(os.path.join(fold_path, f"{NO_TYPES_PATH}.test.c2s"), "w+") as test:
-                test.writelines(samples[i * fold_size : (i + 1) * fold_size])
-
-            print(f"Fold #{i}:", file=result_file)
-            print("Metrics before:", test_single(model_path, preprocessed_path), file=result_file)
-            trained_model_path = train_and_test(preprocessed_path, model_path, project_name, i)
-            print("Metrics after:", test_single(trained_model_path, preprocessed_path), file=result_file)
+    return checkpoint_callback.best_model_path, metrics_before, metrics_after
 
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("project", type=str, help="Path to preprocessed project dataset")
-    arg_parser.add_argument("model", type=str, help="Path to model checkpoint to be evaluated")
-    arg_parser.add_argument("folds", type=int, help="Number of folds for k-fold cross-validation")
+    arg_parser.add_argument("models_folder", type=str, help="Path to save best model checkpoint")
+    arg_parser.add_argument(
+        "--model", type=str, help="Already trained model to be fine-tuned", default=None, required=False
+    )
 
     args = arg_parser.parse_args()
-    fine_tune(args.project, args.model, args.folds)
+    train_and_test(args.project, args.models_folder, args.model)
