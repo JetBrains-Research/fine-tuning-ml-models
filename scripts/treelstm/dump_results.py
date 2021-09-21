@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 import torch
 
 from typing import List, Dict, Tuple
-from fine_tune import get_pretrained_model
+from .fine_tune import get_pretrained_model
 
 
 def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List[int]) -> List[str]:
