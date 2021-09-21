@@ -2,35 +2,38 @@ from argparse import ArgumentParser
 from typing import Tuple, Any, Optional
 
 import torch
+import dgl
 from os.path import join
 from commode_utils.callback import PrintEpochResultCallback
-from omegaconf import DictConfig, OmegaConf
-from code2seq.data.path_context_data_module import PathContextDataModule
-from code2seq.model import Code2Seq
-from code2seq.data.vocabulary import Vocabulary, build_from_scratch
-from pytorch_lightning import Trainer
+from commode_utils.vocabulary import build_from_scratch
+from omegaconf import OmegaConf, DictConfig
+
+from embeddings_for_trees.data.jsonl_data_module import JsonlASTDatamodule
+from embeddings_for_trees.data.vocabulary import Vocabulary
+from embeddings_for_trees.models import TreeLSTM2Seq
+from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 
-from .utils import CODE2SEQ_CONFIG, CODE2SEQ_VOCABULARY
+from scripts.utils import TREELSTM_CONFIG, TREELSTM_VOCABULARY
 
 
-class CustomVocabularyDataModule(PathContextDataModule):
-    def __init__(self, data_dir: str, config: DictConfig, vocabulary_path: str = None, is_class: bool = False):
-        super().__init__(data_dir, config, is_class)
+class CustomVocabularyDataModule(JsonlASTDatamodule):
+    def __init__(self, data_dir: str, config: DictConfig, vocabulary_path: str = None):
+        super().__init__(config, data_dir)
         self._vocabulary_path = vocabulary_path
 
     def setup(self, stage: Optional[str] = None):
         if self._vocabulary_path is None:
             print("Can't find vocabulary, building")
-            build_from_scratch(join(self._data_dir, f"{self._train}.c2s"), Vocabulary)
-            vocabulary_path = join(self._data_dir, Vocabulary.vocab_filename)
+            build_from_scratch(join(self._data_folder, f"{self._train}.jsonl"), Vocabulary)
+            vocabulary_path = join(self._data_folder, Vocabulary.vocab_filename)
         else:
             vocabulary_path = self._vocabulary_path
-        self._vocabulary = Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens, self._is_class)
+        self._vocabulary = Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens)
 
 
 def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
-    config = DictConfig(OmegaConf.load(CODE2SEQ_CONFIG))
+    config = DictConfig(OmegaConf.load(TREELSTM_CONFIG))
     config.data_folder = dataset_path
 
     data_module = CustomVocabularyDataModule(config.data_folder, config.data, vocabulary_path)
@@ -42,18 +45,18 @@ def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = 
 def get_untrained_model(dataset_path: str):
     config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path)
 
-    model = Code2Seq(config.model, config.optimizer, data_module.vocabulary, config.train.teacher_forcing)
+    model = TreeLSTM2Seq(config.model, config.optimizer, data_module.vocabulary, config.train.teacher_forcing)
 
-    return model, data_module, config, data_module.vocabulary
+    return model, data_module, config, vocabulary
 
 
-def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: Optional[str] = CODE2SEQ_VOCABULARY):
+def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: Optional[str] = TREELSTM_VOCABULARY):
     if vocabulary_path is None:
-        vocabulary_path = CODE2SEQ_VOCABULARY
+        vocabulary_path = TREELSTM_VOCABULARY
 
     config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, vocabulary_path)
 
-    model = Code2Seq.load_from_checkpoint(model_path, map_location=torch.device("cpu"))
+    model = TreeLSTM2Seq.load_from_checkpoint(model_path, map_location=torch.device("cpu"))
 
     return model, data_module, config, vocabulary
 
@@ -65,6 +68,9 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
         model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path)
     else:
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)
+
+    seed_everything(config.seed)
+    dgl.seed(config.seed)
 
     params = config.train
 

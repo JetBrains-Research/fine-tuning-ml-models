@@ -1,8 +1,7 @@
 from argparse import ArgumentParser
 
 import nltk
-from nltk import bleu, meteor
-from nltk.translate import chrf_score
+from nltk import meteor
 import numpy as np
 import pandas as pd
 from sacrebleu.metrics import BLEU, CHRF

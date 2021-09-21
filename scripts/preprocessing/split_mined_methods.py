@@ -3,8 +3,8 @@ import os
 import json
 from typing import List, Dict
 from shutil import copytree
-from .utils import CLONED_REPOS_DIR, EXTRACTED_METHODS_DIR
-from .load_tools import setup_comment_updater
+from scripts.utils import CLONED_REPOS_DIR, EXTRACTED_METHODS_DIR
+from scripts.load_tools import setup_comment_updater
 import git
 
 

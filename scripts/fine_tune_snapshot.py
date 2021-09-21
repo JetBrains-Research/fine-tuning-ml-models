@@ -3,7 +3,7 @@ import os
 import tempfile
 from shutil import copy
 
-from scripts.fine_tune import train_and_test
+from code2seq.fine_tune import train_and_test
 from .utils import NO_TYPES_PATH
 
 

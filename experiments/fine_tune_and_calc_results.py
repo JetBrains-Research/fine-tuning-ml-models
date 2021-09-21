@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 from time import time_ns
 import os
-from scripts.fine_tune import train_and_test
-from scripts.dump_results import extract
+from code2seq.fine_tune import train_and_test
+from scripts.code2seq.dump_results import extract
 from scripts.save_metrics import calculate_and_dump_metrics
 from scripts.utils import PREPROCESSED_DATASETS_DIR, RESULTS_DIR, EXPERIMENT_MODEL_DIR, CODE2SEQ_VOCABULARY
 
