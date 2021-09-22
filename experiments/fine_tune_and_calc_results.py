@@ -1,13 +1,24 @@
 from argparse import ArgumentParser
 from time import time_ns
 import os
-from code2seq.fine_tune import train_and_test
-from scripts.code2seq.dump_results import extract
+from scripts.code2seq.fine_tune import train_and_test as c2s_train_and_test
+from scripts.code2seq.dump_results import extract as c2s_extract
+from scripts.treelstm.fine_tune import train_and_test as tl_train_and_test
+from scripts.treelstm.dump_results import extract as tl_extract
 from scripts.save_metrics import calculate_and_dump_metrics
 from scripts.utils import PREPROCESSED_DATASETS_DIR, RESULTS_DIR, EXPERIMENT_MODEL_DIR, CODE2SEQ_VOCABULARY
 
 
-def run_models_and_save_results(project_name: str, model_path: str) -> None:
+def run_models_and_save_results(project_name: str, model_type: str, model_path: str) -> None:
+    if model_type == "code2seq":
+        train_and_test = c2s_train_and_test
+        extract = c2s_extract
+    elif model_type == "treelstm":
+        train_and_test = tl_train_and_test
+        extract = tl_extract
+    else:
+        raise ValueError("Unknown model")
+
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
 
     run_name = f"{project_name}_{time_ns()}"
@@ -40,18 +51,19 @@ def run_models_and_save_results(project_name: str, model_path: str) -> None:
     calculate_and_dump_metrics(trained_after_names, os.path.join(result_folder, "trained_after_metrics.csv"))
 
 
-def evaluate_on_many_datasets(filename: str, model_path: str) -> None:
+def evaluate_on_many_datasets(filename: str, model_type: str, model_path: str) -> None:
     """Evaluate models on each project's dataset"""
 
     with open(filename, "r") as projects_file:
         for project in projects_file:
-            run_models_and_save_results(project.strip(), model_path)
+            run_models_and_save_results(project.strip(), model_type, model_path)
 
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("projects_file", type=str, help="A path to file with list of preprocessed projects' names")
+    arg_parser.add_argument("model_type", type=str, help="Model type (code2seq, treelstm)")
     arg_parser.add_argument("model", type=str, help="Path to pretrained code2seq model")
     args = arg_parser.parse_args()
 
-    evaluate_on_many_datasets(args.projects_file, args.model)
+    evaluate_on_many_datasets(args.projects_file, args.model_type, args.model)
