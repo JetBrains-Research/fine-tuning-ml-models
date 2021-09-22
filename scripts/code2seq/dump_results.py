@@ -11,7 +11,7 @@ def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List
 
 
 def extract(
-    checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
+        checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
 ) -> List[Tuple[str, str]]:
     model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder, vocabulary_path)
     model.eval()
@@ -47,6 +47,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("checkpoint", type=str)
     arg_parser.add_argument("data_folder", type=str, default=None)
     arg_parser.add_argument("output", type=str, default=None)
+    arg_parser.add_argument("--vocabulary", type=str, default=None, required=False)
 
     args = arg_parser.parse_args()
 
@@ -54,4 +55,4 @@ if __name__ == "__main__":
         for item in extract(args.checkpoint, args.data_folder):
             print(item)
     else:
-        extract(args.checkpoint, args.data_folder, result_file=args.output)
+        extract(args.checkpoint, args.data_folder, result_file=args.output, vocabulary_path=args.vocabulary)
