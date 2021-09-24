@@ -66,7 +66,11 @@ def calculate_metrics(samples) -> pd.DataFrame:
     return result
 
 
-def calculate_and_dump_metrics(samples, output_file: str):
+def calculate_and_dump_metrics(input_file: str, output_file: str):
+    samples = []
+    with open(input_file, "r") as f:
+        for line in f:
+            samples.append(tuple(line.strip().split()))
     metrics = calculate_metrics(samples)
     metrics.to_csv(output_file, index=True)
 
@@ -78,8 +82,4 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    lines = []
-    with open(args.samples, "r") as f:
-        for line in f:
-            lines.append(tuple(line.strip().split()))
-    calculate_and_dump_metrics(lines, args.output)
+    calculate_and_dump_metrics(args.samples, args.output)
