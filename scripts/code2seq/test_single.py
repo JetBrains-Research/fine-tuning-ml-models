@@ -25,7 +25,7 @@ def test_single(model_path: str, project_path: str, output: str = None, vocabula
 
     if output is not None:
         with open(output, "w") as f:
-            print(results, file=f)
+            print(*results, file=f)
 
     return get_only_metrics(results[0])
 
