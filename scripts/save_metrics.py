@@ -38,6 +38,11 @@ def calculate_metrics(samples) -> pd.DataFrame:
     meteors = []
     chrfs = []
     for sample in samples:
+        if len(sample) != 2:
+            bleus.append(0.0)
+            meteors.append(0.0)
+            chrfs.append(0.0)
+            continue
         target, predicted = sample[0].split("|"), sample[1].split("|")
         target_sentence, predicted_sentence = " ".join(target), " ".join(predicted)
 
