@@ -36,6 +36,9 @@ def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = 
     config = DictConfig(OmegaConf.load(TREELSTM_CONFIG))
     config.data_folder = dataset_path
 
+    seed_everything(config.seed)
+    dgl.seed(config.seed)
+
     data_module = CustomVocabularyDataModule(config.data_folder, config.data, vocabulary_path)
     data_module.setup()
 
@@ -68,9 +71,6 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
         model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path)
     else:
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)
-
-    seed_everything(config.seed)
-    dgl.seed(config.seed)
 
     params = config.train
 

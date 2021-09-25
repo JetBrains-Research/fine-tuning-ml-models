@@ -8,7 +8,7 @@ from omegaconf import DictConfig, OmegaConf
 from code2seq.data.path_context_data_module import PathContextDataModule
 from code2seq.model import Code2Seq
 from code2seq.data.vocabulary import Vocabulary, build_from_scratch
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 
 from scripts.utils import CODE2SEQ_CONFIG, CODE2SEQ_VOCABULARY
@@ -32,6 +32,8 @@ class CustomVocabularyDataModule(PathContextDataModule):
 def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
     config = DictConfig(OmegaConf.load(CODE2SEQ_CONFIG))
     config.data_folder = dataset_path
+
+    seed_everything(config.seed)
 
     data_module = CustomVocabularyDataModule(config.data_folder, config.data, vocabulary_path)
     data_module.setup()
@@ -67,6 +69,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)
 
     params = config.train
+    seed_everything(config.seed)
 
     # define model checkpoint callback
     checkpoint_callback = ModelCheckpoint(
@@ -101,7 +104,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
 
     metrics_before = trainer.test(model=model, datamodule=data_module)
     trainer.fit(model=model, datamodule=data_module)
-    metrics_after = trainer.test()
+    metrics_after = trainer.test(ckpt_path=checkpoint_callback.best_model_path, datamodule=data_module)
 
     print("_" * 30)
     print("Metrics before:", metrics_before)
