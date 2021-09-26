@@ -31,6 +31,7 @@ def extract(
         serialization_needed = False
     results = []
     for batch in datamodule.test_dataloader():
+        datamodule.transfer_batch_to_device(batch, device, 0)
         logits = model.logits_from_batch(batch, None)
         with torch.no_grad():
             predictions = logits.argmax(-1)
