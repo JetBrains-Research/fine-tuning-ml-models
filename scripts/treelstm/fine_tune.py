@@ -73,6 +73,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)
 
     params = config.train
+    dgl.seed(config.seed)
 
     # define model checkpoint callback
     checkpoint_callback = ModelCheckpoint(
