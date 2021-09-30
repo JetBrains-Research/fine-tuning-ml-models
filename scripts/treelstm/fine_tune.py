@@ -84,8 +84,8 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
     )
 
     # define other callbacks
-    early_stopping_callback = EarlyStopping(patience=params.patience, monitor="val/loss", verbose=True, mode="min")
-    print_epoch_result_callback = PrintEpochResultCallback(after_train=True, after_validation=True)
+    #early_stopping_callback = EarlyStopping(patience=params.patience, monitor="val/loss", verbose=True, mode="min")
+    print_epoch_result_callback = PrintEpochResultCallback(after_test=False)
     lr_logger = LearningRateMonitor("step")
 
     gpu = 1 if torch.cuda.is_available() else None
@@ -99,7 +99,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
         progress_bar_refresh_rate=config.progress_bar_refresh_rate,
         callbacks=[
             lr_logger,
-            early_stopping_callback,
+            #early_stopping_callback,
             checkpoint_callback,
             print_epoch_result_callback,
         ],

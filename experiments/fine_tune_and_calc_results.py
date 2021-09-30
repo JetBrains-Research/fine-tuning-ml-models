@@ -3,7 +3,7 @@ from time import time_ns
 import os
 from scripts.code2seq.fine_tune import train_and_test as c2s_train_and_test
 from scripts.treelstm.fine_tune import train_and_test as tl_train_and_test
-from scripts.utils import PREPROCESSED_DATASETS_DIR, RESULTS_DIR, EXPERIMENT_MODEL_DIR
+from scripts.utils import PREPROCESSED_DATASETS_DIR, EXPERIMENT_MODEL_DIR
 
 
 def run_models_and_save_results(project_name: str, model_type: str, model_path: str) -> None:
