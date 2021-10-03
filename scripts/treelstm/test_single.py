@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 
+import dgl
 import torch
 from pytorch_lightning import Trainer, seed_everything
 
@@ -12,6 +13,7 @@ def test_single(model_path: str, project_path: str, output: str = None, vocabula
 
     model, data_module, config, vocabulary = get_pretrained_model(model_path, project_path, vocabulary_path)
     seed_everything(config.seed)
+    dgl.seed(config.seed)
 
     gpu = 1 if torch.cuda.is_available() else None
     trainer = Trainer(gpus=gpu)
