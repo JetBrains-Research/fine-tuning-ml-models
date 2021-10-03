@@ -12,7 +12,7 @@ def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List
 
 
 def extract(
-    checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
+        checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
 ) -> List[Tuple[str, str]]:
     model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder, vocabulary_path)
     dgl.seed(config.seed)
@@ -35,6 +35,8 @@ def extract(
     for batch in datamodule.test_dataloader():
         datamodule.transfer_batch_to_device(batch, device, 0)
         labels, graph = batch
+        labels.to(device)
+        graph = graph.to(device)
         logits = model(graph, labels.shape[0])
         with torch.no_grad():
             predictions = logits.argmax(-1)
