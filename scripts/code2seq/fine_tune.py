@@ -80,7 +80,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
     )
 
     # define other callbacks
-    early_stopping_callback = EarlyStopping(patience=10, monitor="val/loss", verbose=True, mode="min")
+    early_stopping_callback = EarlyStopping(patience=params.patience, monitor="val/loss", verbose=True, mode="min")
     print_epoch_result_callback = PrintEpochResultCallback(after_train=True, after_validation=True)
     lr_logger = LearningRateMonitor("step")
 
