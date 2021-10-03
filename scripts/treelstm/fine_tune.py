@@ -103,7 +103,6 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
             checkpoint_callback,
             print_epoch_result_callback,
         ],
-        resume_from_checkpoint=model_path,
     )
 
     metrics_before = trainer.test(model=model, datamodule=data_module)
