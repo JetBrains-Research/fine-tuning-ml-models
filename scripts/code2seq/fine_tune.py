@@ -3,7 +3,7 @@ from typing import Tuple, Any, Optional
 
 import torch
 from os.path import join
-from commode_utils.callback import PrintEpochResultCallback
+from commode_utils.callbacks import PrintEpochResultCallback
 from omegaconf import DictConfig, OmegaConf
 from code2seq.data.path_context_data_module import PathContextDataModule
 from code2seq.model import Code2Seq
@@ -16,17 +16,17 @@ from scripts.utils import CODE2SEQ_CONFIG, CODE2SEQ_VOCABULARY
 
 class CustomVocabularyDataModule(PathContextDataModule):
     def __init__(self, data_dir: str, config: DictConfig, vocabulary_path: str = None, is_class: bool = False):
-        super().__init__(data_dir, config, is_class)
         self._vocabulary_path = vocabulary_path
+        super().__init__(data_dir, config, is_class)
 
-    def setup(self, stage: Optional[str] = None):
+    def setup_vocabulary(self, stage: Optional[str] = None) -> Vocabulary:
         if self._vocabulary_path is None:
             print("Can't find vocabulary, building")
             build_from_scratch(join(self._data_dir, f"{self._train}.c2s"), Vocabulary)
             vocabulary_path = join(self._data_dir, Vocabulary.vocab_filename)
         else:
             vocabulary_path = self._vocabulary_path
-        self._vocabulary = Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens, self._is_class)
+        return Vocabulary(vocabulary_path, self._config.labels_count, self._config.tokens_count, self._is_class)
 
 
 def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):

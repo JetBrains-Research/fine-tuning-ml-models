@@ -11,7 +11,7 @@ def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List
 
 
 def extract(
-    checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
+        checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
 ) -> List[Tuple[str, str]]:
     model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder, vocabulary_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -22,6 +22,7 @@ def extract(
     PAD = "<PAD>"
     SOS = "<SOS>"
     EOS = "<EOS>"
+    UNK = "<UNK>"
     ignore_index = [vocabulary.label_to_id[i] for i in [SOS, EOS, PAD]]
 
     if result_file is not None:
@@ -32,12 +33,17 @@ def extract(
     results = []
     for batch in datamodule.test_dataloader():
         datamodule.transfer_batch_to_device(batch, device, 0)
-        logits = model.logits_from_batch(batch, None)
+        logits, _ = model.logits_from_batch(batch, None)
         with torch.no_grad():
             predictions = logits.argmax(-1)
         for y_true, y_pred in zip(batch.labels.t(), predictions.t()):
-            y_true_decode = "|".join(decode(y_true, id_to_label, ignore_index))
-            y_pred_decode = "|".join(decode(y_pred, id_to_label, ignore_index))
+            y_true_decode = decode(y_true, id_to_label, ignore_index)
+            y_pred_decode = decode(y_pred, id_to_label, ignore_index)
+            if UNK in y_true_decode:
+                continue
+
+            y_true_decode = "|".join(y_true_decode)
+            y_pred_decode = "|".join(y_pred_decode)
             results.append((y_true_decode, y_pred_decode))
             if serialization_needed:
                 print(y_true_decode, y_pred_decode, file=f)

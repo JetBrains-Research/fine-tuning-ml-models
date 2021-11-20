@@ -1,6 +1,6 @@
 import os
-from dump_results import extract
-from test_single import test_single
+from .dump_results import extract
+from .test_single import test_single
 from ..save_metrics import calculate_and_dump_metrics
 from argparse import ArgumentParser
 
