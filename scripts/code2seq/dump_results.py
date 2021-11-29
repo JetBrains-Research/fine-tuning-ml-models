@@ -39,8 +39,10 @@ def extract(
         for y_true, y_pred in zip(batch.labels.t(), predictions.t()):
             y_true_decode = decode(y_true, id_to_label, ignore_index)
             y_pred_decode = decode(y_pred, id_to_label, ignore_index)
-            if UNK in y_true_decode:
+            y_true_decode = [x for x in y_true_decode if x != UNK]
+            if len(y_true_decode) == 0:
                 continue
+            y_pred_decode = [x for x in y_pred_decode if x != UNK]
 
             y_true_decode = "|".join(y_true_decode)
             y_pred_decode = "|".join(y_pred_decode)
