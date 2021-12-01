@@ -107,7 +107,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
 
     metrics_before = trainer.test(model=model, datamodule=data_module)
     trainer.fit(model=model, datamodule=data_module)
-    metrics_after = trainer.test(model, datamodule=data_module)
+    metrics_after = trainer.test(ckpt_path=checkpoint_callback.best_model_path, datamodule=data_module)
 
     print("_" * 30)
     print("Metrics before:", metrics_before)
