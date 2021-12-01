@@ -4,7 +4,7 @@ from typing import Tuple, Any, Optional
 import torch
 import dgl
 from os.path import join
-from commode_utils.callback import PrintEpochResultCallback
+from commode_utils.callbacks import PrintEpochResultCallback
 from commode_utils.vocabulary import build_from_scratch
 from omegaconf import OmegaConf, DictConfig
 
@@ -19,17 +19,17 @@ from scripts.utils import TREELSTM_CONFIG, TREELSTM_VOCABULARY
 
 class CustomVocabularyDataModule(JsonlASTDatamodule):
     def __init__(self, data_dir: str, config: DictConfig, vocabulary_path: str = None):
-        super().__init__(config, data_dir)
         self._vocabulary_path = vocabulary_path
+        super().__init__(config, data_dir)
 
-    def setup(self, stage: Optional[str] = None):
+    def setup_vocabulary(self):
         if self._vocabulary_path is None:
             print("Can't find vocabulary, building")
             build_from_scratch(join(self._data_folder, f"{self._train}.jsonl"), Vocabulary)
             vocabulary_path = join(self._data_folder, Vocabulary.vocab_filename)
         else:
             vocabulary_path = self._vocabulary_path
-        self._vocabulary = Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens)
+        return Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens)
 
 
 def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):

@@ -24,6 +24,7 @@ def extract(
     PAD = "<PAD>"
     SOS = "<SOS>"
     EOS = "<EOS>"
+    UNK = "<UNK>"
     ignore_index = [vocabulary.label_to_id[i] for i in [SOS, EOS, PAD]]
 
     if result_file is not None:
@@ -41,8 +42,15 @@ def extract(
         with torch.no_grad():
             predictions = logits.argmax(-1)
         for y_true, y_pred in zip(labels.t(), predictions.t()):
-            y_true_decode = "|".join(decode(y_true, id_to_label, ignore_index))
-            y_pred_decode = "|".join(decode(y_pred, id_to_label, ignore_index))
+            y_true_decode = decode(y_true, id_to_label, ignore_index)
+            y_pred_decode = decode(y_pred, id_to_label, ignore_index)
+            y_true_decode = [x for x in y_true_decode if x != UNK]
+            if len(y_true_decode) == 0:
+                continue
+            y_pred_decode = [x for x in y_pred_decode if x != UNK]
+
+            y_true_decode = "|".join(y_true_decode)
+            y_pred_decode = "|".join(y_pred_decode)
             results.append((y_true_decode, y_pred_decode))
             if serialization_needed:
                 print(y_true_decode, y_pred_decode, file=f)
