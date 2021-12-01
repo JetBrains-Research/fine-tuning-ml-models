@@ -29,7 +29,7 @@ class CustomVocabularyDataModule(JsonlASTDatamodule):
             vocabulary_path = join(self._data_folder, Vocabulary.vocab_filename)
         else:
             vocabulary_path = self._vocabulary_path
-        return Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens)
+        return Vocabulary(vocabulary_path, self._config.labels_count, self._config.tokens_count)
 
 
 def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
