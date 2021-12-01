@@ -38,7 +38,7 @@ def extract(
         labels, graph = batch
         labels.to(device)
         graph = graph.to(device)
-        logits, _ = model(graph, labels.shape[0], labels)
+        logits, _ = model(graph, labels.shape[0])
         with torch.no_grad():
             predictions = logits.argmax(-1)
         for y_true, y_pred in zip(labels.t(), predictions.t()):
