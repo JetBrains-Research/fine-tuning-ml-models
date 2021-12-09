@@ -14,7 +14,7 @@ data:
   labels_count: 10
   max_label_parts: 7
   # Each token appears at least 1000 times (99.5% coverage)
-  tokens_count: 1000
+  tokens_count: 1
   max_token_parts: 5
   path_length: 9
 
