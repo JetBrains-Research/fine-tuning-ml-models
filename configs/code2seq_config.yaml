@@ -11,7 +11,7 @@ data:
   num_workers: 4
 
   # Each token appears at least 10 times (99.2% coverage)
-  labels_count: 10
+  labels_count: 1
   max_label_parts: 7
   # Each token appears at least 1000 times (99.5% coverage)
   tokens_count: 1
