@@ -23,14 +23,14 @@ with open(args.projects_file, "r") as f:
         new_model_name = os.listdir(os.path.join(full_name, "new"))[0]
         new_model_path = os.path.join(full_name, "new", new_model_name)
 
-        test_single(new_model_path, dataset_path, os.path.join(outdir, "new_after.jsonl"), vocabulary)
+        test_single(new_model_path, dataset_path, True, os.path.join(outdir, "new_after.jsonl"), vocabulary)
         extract(new_model_path, dataset_path, True, vocabulary,
                 result_file=os.path.join(outdir, "new_after_names.txt"))
         calculate_and_dump_metrics(
             os.path.join(outdir, "new_after_names.txt"), os.path.join(outdir, "new_after_metrics.csv")
         )
 
-        test_single(MAIN_MODEL, dataset_path, os.path.join(outdir, "trained_before.jsonl"))
+        test_single(MAIN_MODEL, dataset_path, False, os.path.join(outdir, "trained_before.jsonl"))
         extract(MAIN_MODEL, dataset_path, False, result_file=os.path.join(outdir, "trained_before_names.txt"))
         calculate_and_dump_metrics(
             os.path.join(outdir, "trained_before_names.txt"), os.path.join(outdir, "trained_before_metrics.csv")
@@ -39,7 +39,7 @@ with open(args.projects_file, "r") as f:
         trained_model_name = os.listdir(os.path.join(full_name, "trained"))[0]
         trained_model_path = os.path.join(full_name, "trained", trained_model_name)
 
-        test_single(trained_model_path, dataset_path, os.path.join(outdir, "trained_after.jsonl"))
+        test_single(trained_model_path, dataset_path, False, os.path.join(outdir, "trained_after.jsonl"))
         extract(trained_model_path, dataset_path, False, result_file=os.path.join(outdir, "trained_after_names.txt"))
         calculate_and_dump_metrics(
             os.path.join(outdir, "trained_after_names.txt"), os.path.join(outdir, "trained_after_metrics.csv")
