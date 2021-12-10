@@ -26,7 +26,7 @@ class CustomVocabularyDataModule(PathContextDataModule):
             vocabulary_path = join(self._data_dir, Vocabulary.vocab_filename)
         else:
             vocabulary_path = self._vocabulary_path
-        return Vocabulary(self._vocabulary_path, self._config.labels_count, self._config.tokens_count,
+        return Vocabulary(vocabulary_path, self._config.labels_count, self._config.tokens_count,
                           self._is_class)
 
 
