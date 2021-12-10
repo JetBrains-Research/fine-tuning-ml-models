@@ -30,9 +30,12 @@ class CustomVocabularyDataModule(PathContextDataModule):
                           self._is_class)
 
 
-def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
+def get_config_data_module_vocabulary(dataset_path: str, is_from_scratch: bool, vocabulary_path: str = None):
     config = DictConfig(OmegaConf.load(CODE2SEQ_CONFIG))
     config.data_folder = dataset_path
+    if is_from_scratch:
+        config.labels_count = None
+        config.tokens_count = None
 
     seed_everything(config.seed)
 
@@ -43,18 +46,20 @@ def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = 
 
 
 def get_untrained_model(dataset_path: str):
-    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path)
+    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, True)
 
     model = Code2Seq(config.model, config.optimizer, data_module.vocabulary, config.train.teacher_forcing)
 
     return model, data_module, config, data_module.vocabulary
 
 
-def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: Optional[str] = CODE2SEQ_VOCABULARY):
+def get_pretrained_model(model_path: str, dataset_path: str, is_from_scratch_model: bool,
+                         vocabulary_path: Optional[str] = CODE2SEQ_VOCABULARY):
     if vocabulary_path is None:
         vocabulary_path = CODE2SEQ_VOCABULARY
 
-    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, vocabulary_path)
+    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, is_from_scratch_model,
+                                                                        vocabulary_path)
 
     model = Code2Seq.load_from_checkpoint(model_path, map_location=torch.device("cpu"))
 
@@ -65,7 +70,8 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
     """Trains model and return a path to best checkpoint"""
 
     if model_path is not None:
-        model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path)
+        model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path,
+                                                                      is_from_scratch_model=True)
     else:
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)
 
