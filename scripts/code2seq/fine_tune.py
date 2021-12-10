@@ -71,7 +71,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
 
     if model_path is not None:
         model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path,
-                                                                      is_from_scratch_model=True)
+                                                                      is_from_scratch_model=False)
     else:
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)
 
