@@ -34,8 +34,9 @@ def get_config_data_module_vocabulary(dataset_path: str, is_from_scratch: bool, 
     config = DictConfig(OmegaConf.load(CODE2SEQ_CONFIG))
     config.data_folder = dataset_path
     if is_from_scratch:
-        config.labels_count = None
-        config.tokens_count = None
+        config.data.labels_count = None
+        config.data.tokens_count = None
+    print(config.data.labels_count, config.data.tokens_count)
 
     seed_everything(config.seed)
 

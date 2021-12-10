@@ -2,15 +2,15 @@ from argparse import ArgumentParser
 from time import time_ns
 import os
 from scripts.code2seq.fine_tune import train_and_test as c2s_train_and_test
-from scripts.treelstm.fine_tune import train_and_test as tl_train_and_test
+#from scripts.treelstm.fine_tune import train_and_test as tl_train_and_test
 from scripts.utils import PREPROCESSED_DATASETS_DIR, EXPERIMENT_MODEL_DIR
 
 
 def run_models_and_save_results(project_name: str, model_type: str, model_path: str) -> None:
     if model_type == "code2seq":
         train_and_test = c2s_train_and_test
-    elif model_type == "treelstm":
-        train_and_test = tl_train_and_test
+    #elif model_type == "treelstm":
+        #train_and_test = tl_train_and_test
     else:
         raise ValueError("Unknown model")
 
