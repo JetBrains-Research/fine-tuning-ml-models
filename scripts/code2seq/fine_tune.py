@@ -24,10 +24,10 @@ class CustomVocabularyDataModule(PathContextDataModule):
             print("Can't find vocabulary, building")
             build_from_scratch(join(self._data_dir, f"{self._train}.c2s"), Vocabulary)
             vocabulary_path = join(self._data_dir, Vocabulary.vocab_filename)
-            return Vocabulary(vocabulary_path, None, None, self._is_class)
         else:
-            return Vocabulary(self._vocabulary_path, self._config.labels_count, self._config.tokens_count,
-                              self._is_class)
+            vocabulary_path = self._vocabulary_path
+        return Vocabulary(self._vocabulary_path, self._config.labels_count, self._config.tokens_count,
+                          self._is_class)
 
 
 def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
