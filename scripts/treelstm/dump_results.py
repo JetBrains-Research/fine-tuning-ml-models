@@ -1,5 +1,6 @@
 import torch
 import dgl
+import json
 import os
 from commode_utils.metrics import SequentialF1Score, ClassificationMetrics
 
@@ -51,9 +52,9 @@ def extract(
             target = torch.stack([y_true]).t().to(device)
             metrics.update(pred, target)
     all_targets = []
-    with open(os.path.join(data_folder, "test.c2s")) as f:
+    with open(os.path.join(data_folder, "test.jsonl")) as f:
         for line in f:
-            x = line.split()[0]
+            x = json.loads(line)["label"]
             all_targets.append(x)
     if result_file is not None:
         with open(result_file, "w") as f:
