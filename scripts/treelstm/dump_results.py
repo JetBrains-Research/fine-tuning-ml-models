@@ -43,7 +43,7 @@ def extract(
         logits, _ = model(graph, labels.shape[0])
         with torch.no_grad():
             predictions = logits.argmax(-1)
-        for y_true, y_pred in zip(batch.labels.t(), predictions.t()):
+        for y_true, y_pred in zip(labels.t(), predictions.t()):
             y_pred_filtered = torch.Tensor([x for x in y_pred if id_to_label[x.item()] != UNK])
             all_predictions.append("|".join(decode(y_pred_filtered, id_to_label, ignore_index)))
 
