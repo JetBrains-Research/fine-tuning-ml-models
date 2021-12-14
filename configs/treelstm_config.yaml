@@ -15,7 +15,7 @@ data:
   labels_count: 10
   max_label_parts: 7
   # 98.75% coverage
-  tokens_count: 1
+  tokens_count: 1000
   max_token_parts: 5
 
   max_tree_nodes: 250
