@@ -12,11 +12,15 @@ def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List
 
 
 def extract(
-        checkpoint_path: str, data_folder: str, is_from_scratch_model: bool, vocabulary_path: str = None,
-        result_file: str = None
+    checkpoint_path: str,
+    data_folder: str,
+    is_from_scratch_model: bool,
+    vocabulary_path: str = None,
+    result_file: str = None,
 ) -> ClassificationMetrics:
-    model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder, is_from_scratch_model,
-                                                                 vocabulary_path)
+    model, datamodule, config, vocabulary = get_pretrained_model(
+        checkpoint_path, data_folder, is_from_scratch_model, vocabulary_path
+    )
     dgl.seed(config.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)

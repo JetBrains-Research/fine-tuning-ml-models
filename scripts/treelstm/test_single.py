@@ -8,12 +8,18 @@ from .fine_tune import get_pretrained_model
 from ..utils import TREELSTM_VOCABULARY
 
 
-def test_single(model_path: str, project_path: str, is_from_scratch_model: bool, output: str = None,
-                vocabulary_path: str = TREELSTM_VOCABULARY):
+def test_single(
+    model_path: str,
+    project_path: str,
+    is_from_scratch_model: bool,
+    output: str = None,
+    vocabulary_path: str = TREELSTM_VOCABULARY,
+):
     """Evaluate model"""
 
-    model, data_module, config, vocabulary = get_pretrained_model(model_path, project_path, is_from_scratch_model,
-                                                                  vocabulary_path)
+    model, data_module, config, vocabulary = get_pretrained_model(
+        model_path, project_path, is_from_scratch_model, vocabulary_path
+    )
     seed_everything(config.seed)
     dgl.seed(config.seed)
 

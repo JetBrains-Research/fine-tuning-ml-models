@@ -42,7 +42,7 @@ def save_f1_test_plot():
         project_folder = os.path.join(RESULTS_DIR, project)
 
         with open(os.path.join(project_folder, "new_after.jsonl")) as f:
-            metrics = ast.literal_eval(f.readline().replace('\'', "\"").replace("nan", "0"))
+            metrics = ast.literal_eval(f.readline().replace("'", '"').replace("nan", "0"))
             print(project, metrics["test/f1"])
             f1_new.append(metrics["test/f1"])
 

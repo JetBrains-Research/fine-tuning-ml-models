@@ -31,8 +31,9 @@ with open(args.projects_file, "r") as f:
         new_model_name = os.listdir(os.path.join(full_name, "new"))[0]
         new_model_path = os.path.join(full_name, "new", new_model_name)
 
-        new = extract(new_model_path, dataset_path, True, vocabulary,
-                      result_file=os.path.join(outdir, "new_after_names.txt"))
+        new = extract(
+            new_model_path, dataset_path, True, vocabulary, result_file=os.path.join(outdir, "new_after_names.txt")
+        )
         calculate_and_dump_metrics(
             os.path.join(outdir, "new_after_names.txt"), os.path.join(outdir, "new_after_metrics.csv")
         )
@@ -47,8 +48,9 @@ with open(args.projects_file, "r") as f:
         trained_model_name = os.listdir(os.path.join(full_name, "trained"))[0]
         trained_model_path = os.path.join(full_name, "trained", trained_model_name)
 
-        after = extract(trained_model_path, dataset_path, False,
-                        result_file=os.path.join(outdir, "trained_after_names.txt"))
+        after = extract(
+            trained_model_path, dataset_path, False, result_file=os.path.join(outdir, "trained_after_names.txt")
+        )
         calculate_and_dump_metrics(
             os.path.join(outdir, "trained_after_names.txt"), os.path.join(outdir, "trained_after_metrics.csv")
         )

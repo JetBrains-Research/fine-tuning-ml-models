@@ -56,8 +56,9 @@ def get_untrained_model(dataset_path: str):
     return model, data_module, config, vocabulary
 
 
-def get_pretrained_model(model_path: str, dataset_path: str, is_from_scratch: bool,
-                         vocabulary_path: Optional[str] = TREELSTM_VOCABULARY):
+def get_pretrained_model(
+    model_path: str, dataset_path: str, is_from_scratch: bool, vocabulary_path: Optional[str] = TREELSTM_VOCABULARY
+):
     if vocabulary_path is None:
         vocabulary_path = TREELSTM_VOCABULARY
 
