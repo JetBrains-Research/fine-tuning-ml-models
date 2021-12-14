@@ -1,4 +1,3 @@
-import json
 import math
 
 import numpy
@@ -43,17 +42,17 @@ def save_f1_test_plot():
 
         with open(os.path.join(project_folder, "new_after.jsonl")) as f:
             metrics = ast.literal_eval(f.readline().replace("'", '"').replace("nan", "0"))
-            print(project, metrics["test/f1"])
-            f1_new.append(metrics["test/f1"])
+            print(project, metrics["f1"])
+            f1_new.append(metrics["f1"])
 
         with open(os.path.join(project_folder, "trained_before.jsonl")) as f:
             metrics = ast.literal_eval(f.readline())
-            f1_trained_before.append(metrics["test/f1"])
+            f1_trained_before.append(metrics["f1"])
 
         with open(os.path.join(project_folder, "trained_after.jsonl")) as f:
             metrics = ast.literal_eval(f.readline())
-            f1_trained_after.append(metrics["test/f1"])
-            if metrics["test/f1"] > 0.99:
+            f1_trained_after.append(metrics["f1"])
+            if metrics["f1"] > 0.99:
                 print(project)
 
     save_metric_plot(f1_new, f1_trained_before, f1_trained_after, "f1")
