@@ -29,7 +29,6 @@ def extract(
     ignore_index = [vocabulary.label_to_id[i] for i in [SOS, EOS, PAD]]
 
     if result_file is not None:
-        f = open(result_file, "w")
         serialization_needed = True
     else:
         serialization_needed = False

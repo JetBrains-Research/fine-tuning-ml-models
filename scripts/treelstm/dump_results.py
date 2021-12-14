@@ -1,9 +1,9 @@
-from argparse import ArgumentParser
-
 import torch
 import dgl
+import os
+from commode_utils.metrics import SequentialF1Score, ClassificationMetrics
 
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from .fine_tune import get_pretrained_model
 
 
@@ -12,9 +12,11 @@ def decode(sample: torch.Tensor, id_to_label: Dict[int, str], ignore_index: List
 
 
 def extract(
-        checkpoint_path: str, data_folder: str, vocabulary_path: str = None, result_file: str = None
-) -> List[Tuple[str, str]]:
-    model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder, vocabulary_path)
+        checkpoint_path: str, data_folder: str, is_from_scratch_model: bool, vocabulary_path: str = None,
+        result_file: str = None
+) -> ClassificationMetrics:
+    model, datamodule, config, vocabulary = get_pretrained_model(checkpoint_path, data_folder, is_from_scratch_model,
+                                                                 vocabulary_path)
     dgl.seed(config.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -28,11 +30,12 @@ def extract(
     ignore_index = [vocabulary.label_to_id[i] for i in [SOS, EOS, PAD]]
 
     if result_file is not None:
-        f = open(result_file, "w")
         serialization_needed = True
     else:
         serialization_needed = False
-    results = []
+
+    metrics = SequentialF1Score(vocabulary.label_to_id[PAD], vocabulary.label_to_id[EOS])
+    all_predictions = []
     for batch in datamodule.test_dataloader():
         datamodule.transfer_batch_to_device(batch, device, 0)
         labels, graph = batch
@@ -41,34 +44,21 @@ def extract(
         logits, _ = model(graph, labels.shape[0])
         with torch.no_grad():
             predictions = logits.argmax(-1)
-        for y_true, y_pred in zip(labels.t(), predictions.t()):
-            y_true_decode = decode(y_true, id_to_label, ignore_index)
-            y_pred_decode = decode(y_pred, id_to_label, ignore_index)
-            y_true_decode = [x for x in y_true_decode if x != UNK]
-            if len(y_true_decode) == 0:
-                continue
-            y_pred_decode = [x for x in y_pred_decode if x != UNK]
+        for y_true, y_pred in zip(batch.labels.t(), predictions.t()):
+            y_pred_filtered = torch.Tensor([x for x in y_pred if id_to_label[x.item()] != UNK])
+            all_predictions.append("|".join(decode(y_pred_filtered, id_to_label, ignore_index)))
 
-            y_true_decode = "|".join(y_true_decode)
-            y_pred_decode = "|".join(y_pred_decode)
-            results.append((y_true_decode, y_pred_decode))
-            if serialization_needed:
-                print(y_true_decode, y_pred_decode, file=f)
+            pred = torch.stack([y_pred_filtered]).t().to(device)
+            target = torch.stack([y_true]).t().to(device)
+            metrics.update(pred, target)
+    all_targets = []
+    with open(os.path.join(data_folder, "test.c2s")) as f:
+        for line in f:
+            x = line.split()[0]
+            all_targets.append(x)
+    if serialization_needed:
+        with open(result_file, "w") as f:
+            for (x, y) in zip(all_targets, all_predictions):
+                print(x, y, file=f)
 
-    return results
-
-
-if __name__ == "__main__":
-    arg_parser = ArgumentParser()
-    arg_parser.add_argument("checkpoint", type=str)
-    arg_parser.add_argument("data_folder", type=str, default=None)
-    arg_parser.add_argument("output", type=str, default=None)
-    arg_parser.add_argument("--vocabulary", type=str, default=None, required=False)
-
-    args = arg_parser.parse_args()
-
-    if args.output is None:
-        for item in extract(args.checkpoint, args.data_folder):
-            print(item)
-    else:
-        extract(args.checkpoint, args.data_folder, result_file=args.output, vocabulary_path=args.vocabulary)
+    return metrics.compute()
