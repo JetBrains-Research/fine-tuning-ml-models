@@ -1,5 +1,3 @@
-from argparse import ArgumentParser
-
 import dgl
 import torch
 from pytorch_lightning import Trainer, seed_everything
@@ -32,13 +30,3 @@ def test_single(
             print(*results, file=f)
 
     return results[0]
-
-
-if __name__ == "__main__":
-    arg_parser = ArgumentParser()
-    arg_parser.add_argument("project", type=str, help="Path to preprocessed project dataset")
-    arg_parser.add_argument("model", type=str, help="Path to model checkpoint to be evaluated")
-    arg_parser.add_argument("vocabulary", type=str)
-
-    args = arg_parser.parse_args()
-    print(test_single(args.model, args.project, None, args.vocabulary))

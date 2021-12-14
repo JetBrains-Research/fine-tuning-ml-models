@@ -12,7 +12,7 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
 
     project_names = os.listdir(dataset_path)
     for project_name in project_names:
-        preprocess_single(os.path.join(dataset_path, project_name))
+        preprocess_single(os.path.join(dataset_path, project_name), "code2seq")
 
     project_names = os.listdir(PREPROCESSED_DATASETS_DIR)
     result_file = os.path.join(results_path, "results.csv")
@@ -23,7 +23,7 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
         for project_name in project_names:
             print(project_name)
             try:
-                metrics = test_single(model_path, os.path.join(PREPROCESSED_DATASETS_DIR, project_name))
+                metrics = test_single(model_path, os.path.join(PREPROCESSED_DATASETS_DIR, project_name), False)
             except:
                 metrics = [-1, -1, -1, -1]
             row = {"Project": project_name}

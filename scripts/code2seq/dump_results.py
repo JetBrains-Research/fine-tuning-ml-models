@@ -32,11 +32,6 @@ def extract(
     UNK = "<UNK>"
     ignore_index = [vocabulary.label_to_id[i] for i in [SOS, EOS, PAD]]
 
-    if result_file is not None:
-        serialization_needed = True
-    else:
-        serialization_needed = False
-
     metrics = SequentialF1Score(vocabulary.label_to_id[PAD], vocabulary.label_to_id[EOS])
     all_predictions = []
     for batch in datamodule.test_dataloader():
@@ -56,7 +51,7 @@ def extract(
         for line in f:
             x = line.split()[0]
             all_targets.append(x)
-    if serialization_needed:
+    if result_file is not None:
         with open(result_file, "w") as f:
             for (x, y) in zip(all_targets, all_predictions):
                 print(x, y, file=f)
