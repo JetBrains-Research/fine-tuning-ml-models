@@ -1,8 +1,7 @@
 from argparse import ArgumentParser
 
 import nltk
-from nltk import bleu, meteor
-from nltk.translate import chrf_score
+from nltk import meteor
 import numpy as np
 import pandas as pd
 from sacrebleu.metrics import BLEU, CHRF
@@ -39,6 +38,11 @@ def calculate_metrics(samples) -> pd.DataFrame:
     meteors = []
     chrfs = []
     for sample in samples:
+        if len(sample) != 2:
+            bleus.append(0.0)
+            meteors.append(0.0)
+            chrfs.append(0.0)
+            continue
         target, predicted = sample[0].split("|"), sample[1].split("|")
         target_sentence, predicted_sentence = " ".join(target), " ".join(predicted)
 
@@ -67,7 +71,11 @@ def calculate_metrics(samples) -> pd.DataFrame:
     return result
 
 
-def calculate_and_dump_metrics(samples, output_file: str):
+def calculate_and_dump_metrics(input_file: str, output_file: str):
+    samples = []
+    with open(input_file, "r") as f:
+        for line in f:
+            samples.append(tuple(line.strip().split()))
     metrics = calculate_metrics(samples)
     metrics.to_csv(output_file, index=True)
 
@@ -79,8 +87,4 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    lines = []
-    with open(args.samples, "r") as f:
-        for line in f:
-            lines.append(tuple(line.strip().split()))
-    calculate_and_dump_metrics(lines, args.output)
+    calculate_and_dump_metrics(args.samples, args.output)

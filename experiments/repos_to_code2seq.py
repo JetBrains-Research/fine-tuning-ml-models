@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
-from scripts.clone_repos import clone_repo
-from scripts.mine_method_updates import run_comment_updater
-from scripts.split_mined_methods import split_dataset
-from scripts.preprocess import preprocess_complete
+from scripts.preprocessing.clone_repos import clone_repo
+from scripts.preprocessing.mine_method_updates import run_comment_updater
+from scripts.preprocessing.split_mined_methods import split_dataset
+from scripts.preprocessing.preprocess import preprocess_complete
 import os
 from scripts.utils import PREPROCESSED_DATASETS_DIR
 

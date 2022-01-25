@@ -3,7 +3,7 @@ import os
 
 from .utils import PREPROCESSED_DATASETS_DIR
 from .load_tools import setup_comment_updater
-from .fine_tune import train_and_test
+from code2seq.fine_tune import train_and_test
 from experiments.repos_to_code2seq import process_single_repo
 
 

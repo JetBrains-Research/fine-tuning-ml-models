@@ -1,10 +1,10 @@
 import os
 import csv
 from argparse import ArgumentParser
-from .preprocess import preprocess_single
-from .test_single import test_single
-from .load_tools import setup_psiminer
-from .utils import PREPROCESSED_DATASETS_DIR
+from scripts.preprocessing.preprocess import preprocess_single
+from scripts.code2seq.test_single import test_single
+from scripts.load_tools import setup_psiminer
+from scripts.utils import PREPROCESSED_DATASETS_DIR
 
 
 def test_all(dataset_path: str, model_path: str, results_path: str):

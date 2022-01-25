@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 import os
 import tempfile
-from .utils import (
+from scripts.utils import (
     CLONED_REPOS_DIR,
     EXTRACTED_METHODS_DIR,
     COMMENT_UPDATER_DIR,
@@ -15,7 +15,7 @@ def run_comment_updater(project_name: str) -> None:
     stats_path = os.path.join(result_path, "stats.json")
     open(stats_path, "w")
     script_path = os.path.join(COMMENT_UPDATER_DIR, "comment_update_miner.sh")
-    with tempfile.TemporaryDirectory(dir="..") as tmp_dir:
+    with tempfile.TemporaryDirectory(dir="../..") as tmp_dir:
         input_path = os.path.join(tmp_dir, "input.txt")
         f = open(input_path, "w")
         f.write(os.path.abspath(os.path.join(CLONED_REPOS_DIR, project_name)))

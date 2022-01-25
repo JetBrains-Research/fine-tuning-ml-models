@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 import os
-from .utils import CLONED_REPOS_DIR
+from scripts.utils import CLONED_REPOS_DIR
 import git
 
 
