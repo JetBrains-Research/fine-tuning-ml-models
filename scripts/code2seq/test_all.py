@@ -30,7 +30,6 @@ def test_all(dataset_path: str, model_path: str, results_path: str):
             for i in range(1, len(header)):
                 row[header[i]] = metrics[i - 1]
             writer.writerow(row)
-        f.close()
 
 
 if __name__ == "__main__":
