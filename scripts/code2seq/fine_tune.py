@@ -3,7 +3,7 @@ from typing import Tuple, Any, Optional
 
 import torch
 from os.path import join
-from commode_utils.callback import PrintEpochResultCallback
+from commode_utils.callbacks import PrintEpochResultCallback
 from omegaconf import DictConfig, OmegaConf
 from code2seq.data.path_context_data_module import PathContextDataModule
 from code2seq.model import Code2Seq
@@ -16,22 +16,26 @@ from scripts.utils import CODE2SEQ_CONFIG, CODE2SEQ_VOCABULARY
 
 class CustomVocabularyDataModule(PathContextDataModule):
     def __init__(self, data_dir: str, config: DictConfig, vocabulary_path: str = None, is_class: bool = False):
-        super().__init__(data_dir, config, is_class)
         self._vocabulary_path = vocabulary_path
+        super().__init__(data_dir, config, is_class)
 
-    def setup(self, stage: Optional[str] = None):
+    def setup_vocabulary(self, stage: Optional[str] = None) -> Vocabulary:
         if self._vocabulary_path is None:
             print("Can't find vocabulary, building")
             build_from_scratch(join(self._data_dir, f"{self._train}.c2s"), Vocabulary)
             vocabulary_path = join(self._data_dir, Vocabulary.vocab_filename)
         else:
             vocabulary_path = self._vocabulary_path
-        self._vocabulary = Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens, self._is_class)
+        return Vocabulary(vocabulary_path, self._config.labels_count, self._config.tokens_count, self._is_class)
 
 
-def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
+def get_config_data_module_vocabulary(dataset_path: str, is_from_scratch: bool, vocabulary_path: str = None):
     config = DictConfig(OmegaConf.load(CODE2SEQ_CONFIG))
     config.data_folder = dataset_path
+    if is_from_scratch:
+        config.data.labels_count = None
+        config.data.tokens_count = None
+    print(config.data.labels_count, config.data.tokens_count)
 
     seed_everything(config.seed)
 
@@ -42,18 +46,25 @@ def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = 
 
 
 def get_untrained_model(dataset_path: str):
-    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path)
+    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, True)
 
     model = Code2Seq(config.model, config.optimizer, data_module.vocabulary, config.train.teacher_forcing)
 
     return model, data_module, config, data_module.vocabulary
 
 
-def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: Optional[str] = CODE2SEQ_VOCABULARY):
+def get_pretrained_model(
+    model_path: str,
+    dataset_path: str,
+    is_from_scratch_model: bool,
+    vocabulary_path: Optional[str] = CODE2SEQ_VOCABULARY,
+):
     if vocabulary_path is None:
         vocabulary_path = CODE2SEQ_VOCABULARY
 
-    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, vocabulary_path)
+    config, data_module, vocabulary = get_config_data_module_vocabulary(
+        dataset_path, is_from_scratch_model, vocabulary_path
+    )
 
     model = Code2Seq.load_from_checkpoint(model_path, map_location=torch.device("cpu"))
 
@@ -64,7 +75,9 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
     """Trains model and return a path to best checkpoint"""
 
     if model_path is not None:
-        model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path)
+        model, data_module, config, vocabulary = get_pretrained_model(
+            model_path, dataset_path, is_from_scratch_model=False
+        )
     else:
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)
 

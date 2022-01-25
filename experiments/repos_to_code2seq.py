@@ -7,7 +7,7 @@ import os
 from scripts.utils import PREPROCESSED_DATASETS_DIR
 
 
-def process_single_repo(link: str, train_part: float) -> str:
+def process_single_repo(link: str, model_type: str, train_part: float) -> str:
     """Preprocess one repo into code2seq dataset"""
 
     print("Cloning repo", link)
@@ -22,25 +22,26 @@ def process_single_repo(link: str, train_part: float) -> str:
     print("Extracted!")
 
     print("Preprocessing raw java to .c2s...")
-    preprocess_complete(raw_dataset)
+    preprocess_complete(raw_dataset, model_type)
     print("Preprocessing finished!")
 
     return project_name
 
 
-def process_many_repos(filename: str, train_part: float) -> None:
+def process_many_repos(filename: str, model_type: str, train_part: float) -> None:
     """Start preprocessing for each repo and save its destination"""
 
     with open(filename, "r") as links_file, open(
         os.path.join(PREPROCESSED_DATASETS_DIR, "project_names.txt"), "w"
     ) as projects_file:
         for link in links_file:
-            project = process_single_repo(link.strip(), train_part)
+            project = process_single_repo(link.strip(), model_type, train_part)
             projects_file.write(project + "\n")
 
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
+    arg_parser.add_argument("model_type", type=str, help="Model type treelstm/code2seq")
     arg_parser.add_argument(
         "links_file", type=str, help="A path to file with .git link to clone project with all history"
     )
@@ -48,4 +49,4 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    process_many_repos(args.links_file, args.train_part)
+    process_many_repos(args.links_file, args.model_type, args.train_part)

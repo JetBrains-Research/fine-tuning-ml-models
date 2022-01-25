@@ -4,7 +4,7 @@ from typing import Tuple, Any, Optional
 import torch
 import dgl
 from os.path import join
-from commode_utils.callback import PrintEpochResultCallback
+from commode_utils.callbacks import PrintEpochResultCallback
 from commode_utils.vocabulary import build_from_scratch
 from omegaconf import OmegaConf, DictConfig
 
@@ -19,22 +19,25 @@ from scripts.utils import TREELSTM_CONFIG, TREELSTM_VOCABULARY
 
 class CustomVocabularyDataModule(JsonlASTDatamodule):
     def __init__(self, data_dir: str, config: DictConfig, vocabulary_path: str = None):
-        super().__init__(config, data_dir)
         self._vocabulary_path = vocabulary_path
+        super().__init__(config, data_dir)
 
-    def setup(self, stage: Optional[str] = None):
+    def setup_vocabulary(self):
         if self._vocabulary_path is None:
             print("Can't find vocabulary, building")
             build_from_scratch(join(self._data_folder, f"{self._train}.jsonl"), Vocabulary)
             vocabulary_path = join(self._data_folder, Vocabulary.vocab_filename)
         else:
             vocabulary_path = self._vocabulary_path
-        self._vocabulary = Vocabulary(vocabulary_path, self._config.max_labels, self._config.max_tokens)
+        return Vocabulary(vocabulary_path, self._config.labels_count, self._config.tokens_count)
 
 
-def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = None):
+def get_config_data_module_vocabulary(dataset_path: str, is_from_scratch: bool, vocabulary_path: str = None):
     config = DictConfig(OmegaConf.load(TREELSTM_CONFIG))
     config.data_folder = dataset_path
+    if is_from_scratch:
+        config.data.labels_count = None
+        config.data.tokens_count = None
 
     seed_everything(config.seed)
     dgl.seed(config.seed)
@@ -46,18 +49,20 @@ def get_config_data_module_vocabulary(dataset_path: str, vocabulary_path: str = 
 
 
 def get_untrained_model(dataset_path: str):
-    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path)
+    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, True)
 
     model = TreeLSTM2Seq(config.model, config.optimizer, data_module.vocabulary, config.train.teacher_forcing)
 
     return model, data_module, config, vocabulary
 
 
-def get_pretrained_model(model_path: str, dataset_path: str, vocabulary_path: Optional[str] = TREELSTM_VOCABULARY):
+def get_pretrained_model(
+    model_path: str, dataset_path: str, is_from_scratch: bool, vocabulary_path: Optional[str] = TREELSTM_VOCABULARY
+):
     if vocabulary_path is None:
         vocabulary_path = TREELSTM_VOCABULARY
 
-    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, vocabulary_path)
+    config, data_module, vocabulary = get_config_data_module_vocabulary(dataset_path, is_from_scratch, vocabulary_path)
 
     model = TreeLSTM2Seq.load_from_checkpoint(model_path, map_location=torch.device("cpu"))
 
@@ -68,7 +73,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
     """Trains model and return a path to best checkpoint"""
 
     if model_path is not None:
-        model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path)
+        model, data_module, config, vocabulary = get_pretrained_model(model_path, dataset_path, is_from_scratch=False)
     else:
         model, data_module, config, vocabulary = get_untrained_model(dataset_path)
 
@@ -107,7 +112,7 @@ def train_and_test(dataset_path: str, model_folder: str, model_path: str = None)
 
     metrics_before = trainer.test(model=model, datamodule=data_module)
     trainer.fit(model=model, datamodule=data_module)
-    metrics_after = trainer.test()
+    metrics_after = trainer.test(ckpt_path=checkpoint_callback.best_model_path, datamodule=data_module)
 
     print("_" * 30)
     print("Metrics before:", metrics_before)
