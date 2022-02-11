@@ -1,42 +1,54 @@
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-![CI](https://github.com/JetBrains-Research/fine-tuning-ml-models/actions/workflows/ubuntu-python.yml/badge.svg?branch=test-all)
+# Fine-tuning for Code2Seq and TreeLSTM
 
-# Fine-tuning-ml-models
+Framework for fine-tuning Code2Seq and TreeLSTM models on data extracted from Git history of Java projects
+
+## Before experiments
+
+Create conda environment and activate it:
+
+```shell
+conda env create --name <your-env-name> -f ft-env.yml
+conda activate <your-env-name>
+```
 
 ## Preprocessing
 
-To extract data from PSI trees of Java project via [psiminer](https://github.com/JetBrains-Research/psiminer), use this
-command
+1. Prepare file with `.git` links to projects separated via `'\n'`
+2. Path this file to script `experiments/repos_to_model_input`, also you need to specify a model type and percentage of
+   methods, which should be considered as a train part of dataset
+3. Resulting datasets can be found in folder `datasets`, source code partitioned in train/test/val and data mined from
+   git history are in `extracted_methods` dir and projects themselves are in `cloned_repos` directory
 
-```console
-$ python -m scripts.prepocess <path-to-project-folder>
+Example run:
+
+```shell
+python -m experiments.repos_to_model_input links.txt code2seq 0.8
 ```
 
-Resulting .c2s file with samples and vocabulary table are written to the [`datasets`](datasets) directory, the name of
-subdirectory name is same to the project's.
+## Fine-tuning
 
-You can change extraction parameters (e.g., type preserving) by
-modifying [`configs/psiminer_config.json`](configs/psiminer_config.json).
+1. After preprocessing, write names of projects from `preprocessed` folder to some text file
+2. Pass name of this file as argument to `experiments/fine_tune_and_calc_results.py` script, also you need to specify a
+   model type and path to it
+3. Results for each project can be found in separate folders in `results` folder. Metrics and method names (target and
+   predicted) are saved for three models: trained from scratch, original and fine-tuned
+4. Fine-tuned and trained from scratch models with timestamps can be found at `models/fine-tuning-experiments`
 
-## Evaluating model on single project
+Example run:
 
-To calculate quality metrics on a preprocessed project via [code2seq](https://github.com/JetBrains-Research/code2seq),
-use this command
-
-```console
-$ python -m scripts.test_single <path-to-preprocessed-project> <path-to-model-checkpoint>
+```shell
+python -m experiments.fine_tune_and_calc_results names.txt code2seq models/code2seq.ckpt
 ```
 
-Function ``test_single`` returns the list of calculated metrics
+**NB** Parts of these pipelines can be run separately, for more info check `scripts` folder
 
-## Evaluating model on all projects
+## Summarizing results
 
-```console
-$ python -m scripts.test_single <path-to-preprocessed-raw-Java-dataset> <path-to-model-checkpoint> <path-to-results-storage-folder>
+1. You can summarize metrics from `results` folder into some plots and mean metrics
+   via `experiments/summarize_results.py`
+
+Example run:
+
+```shell
+python -m experiments.summarize_results
 ```
-
-Automatically does preprocessing and evaluating, produces ``results.csv`` file, where all metrics and project names
-stored with header.
-
-
-

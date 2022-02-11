@@ -17,11 +17,9 @@ def save_metric_plot(metric_new, metric_trained_before, metric_trained_after, me
     fig, ax = plt.subplots()
 
     metric_name = metric_name.upper()
-    ax.plot(numpy.arange(1, metric_new.shape[0] + 1), np.sort(metric_new), "o", label="From scratch")
-    ax.plot(
-        numpy.arange(1, metric_trained_before.shape[0] + 1), np.sort(metric_trained_before), "o", label="Pretrained"
-    )
-    ax.plot(numpy.arange(1, metric_trained_after.shape[0] + 1), np.sort(metric_trained_after), "o", label="Fine-tuned")
+    ax.plot(numpy.arange(1, metric_new.shape[0] + 1), metric_new, "o", label="From scratch")
+    ax.plot(numpy.arange(1, metric_trained_before.shape[0] + 1), metric_trained_before, "o", label="Pretrained")
+    ax.plot(numpy.arange(1, metric_trained_after.shape[0] + 1), metric_trained_after, "o", label="Fine-tuned")
     ax.legend()
 
     plt.ylabel(metric_name)
@@ -29,8 +27,10 @@ def save_metric_plot(metric_new, metric_trained_before, metric_trained_after, me
     fig.suptitle(f"{metric_name} distribution on test parts", fontweight="bold")
     fig.savefig(f"{metric_name}_test.png")
 
-    print(f"{metric_name} mean improved", np.mean(metric_trained_after - metric_trained_before))
     print(f"{metric_name} mean from scratch", np.mean(metric_new))
+    print(f"{metric_name} mean pretrained", np.mean(metric_trained_before))
+    print(f"{metric_name} mean fine-tuned", np.mean(metric_trained_after))
+    print(f"{metric_name} mean improved", np.mean(metric_trained_after - metric_trained_before))
 
 
 def save_f1_test_plot():
