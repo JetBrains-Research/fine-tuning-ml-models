@@ -5,7 +5,6 @@ from argparse import ArgumentParser
 from typing import List
 from shutil import copytree
 
-from scripts.load_tools import setup_psiminer
 from scripts.utils import PSIMINER_DIR, PREPROCESSED_DATASETS_DIR, PSIMINER_CODE2SEQ_CONFIG, PSIMINER_TREELSTM_CONFIG
 
 
@@ -87,7 +86,6 @@ def run_psiminer(source_folder: str, destination_folder: str, model_type: str) -
 def preprocess_complete(project_path: str, model_type: str) -> None:
     """Transform project into test, train and val data for code2seq"""
 
-    setup_psiminer()
     project_name = os.path.basename(os.path.normpath(project_path))
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
     run_psiminer(project_path, dataset_path, model_type)
@@ -96,7 +94,6 @@ def preprocess_complete(project_path: str, model_type: str) -> None:
 def preprocess_single(project_path: str, model_type: str) -> None:
     """Transform project into test data for code2seq via psiminer"""
 
-    setup_psiminer()
     project_name = os.path.basename(os.path.normpath(project_path))
     with tempfile.TemporaryDirectory(dir="..") as tmp:
         data_path = os.path.join(tmp, project_name)

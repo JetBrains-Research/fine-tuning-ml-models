@@ -4,7 +4,6 @@ import json
 from typing import List, Dict
 from shutil import copytree
 from scripts.utils import CLONED_REPOS_DIR, EXTRACTED_METHODS_DIR
-from scripts.load_tools import setup_comment_updater
 import git
 
 
@@ -31,7 +30,7 @@ def filter_duplicates(methods: List) -> List:
 
 
 def split_dataset(project_name: str, train_part: float) -> str:
-    """Process data mined by CommentUpdater in order to separate in train, test and validation samples"""
+    """Process data extracted by Miner in order to separate in train, test and validation samples"""
 
     dataset_dir = os.path.join(EXTRACTED_METHODS_DIR, project_name)
     train_path = os.path.join(dataset_dir, "train")
@@ -70,12 +69,10 @@ def split_dataset(project_name: str, train_part: float) -> str:
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
-    arg_parser.add_argument("project_names", type=str, help="A list of projects preprocessed via CommentUpdater")
+    arg_parser.add_argument("project_names", type=str, help="A list of projects preprocessed via Miner")
     arg_parser.add_argument("train_part", type=float, help="Fraction of train part")
 
     args = arg_parser.parse_args()
-
-    setup_comment_updater()
 
     with open(args.project_names, "r") as projects:
         for project in projects:

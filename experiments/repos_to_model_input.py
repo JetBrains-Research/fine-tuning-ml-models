@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from scripts.preprocessing.clone_repos import clone_repo
-from scripts.preprocessing.mine_method_updates import run_comment_updater
+from scripts.preprocessing.mine_method_updates import run_miner
 from scripts.preprocessing.split_mined_methods import split_dataset
 from scripts.preprocessing.preprocess import preprocess_complete
 import os
@@ -14,7 +14,7 @@ def process_single_repo(link: str, model_type: str, train_part: float) -> str:
     project_name = clone_repo(link)
 
     print("Running update mining...")
-    run_comment_updater(project_name)
+    run_miner(project_name)
     print("Mining completed!")
 
     print("Extracting added methods...")
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("model_type", type=str, help="Model type treelstm/code2seq")
     arg_parser.add_argument(
-        "links_file", type=str, help="A path to file with .git link to clone project with all history"
+        "links_file", type=str, help="A path to file with .git links to clone projects with all history"
     )
     arg_parser.add_argument("train_part", type=float, help="Fraction of train part")
 
