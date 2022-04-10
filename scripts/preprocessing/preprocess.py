@@ -69,24 +69,22 @@ def fix_output(dataset_path: str, extension: str) -> None:
     print("Test:", len(test_samples_set))
 
 
-def run_psiminer(source_folder: str, destination_folder: str, config_path: str) -> None:
+def run_psiminer(source_folder: str, destination_folder: str, config_path: str, storage: str = None) -> None:
     """Run psiminer and set correct filenames"""
 
     cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{source_folder}" "{destination_folder}" {config_path}'
     os.system(cmd)
-    if config_path == PSIMINER_TREELSTM_CONFIG:
-        fix_output(destination_folder, "jsonl")
-    elif config_path == PSIMINER_CODE2SEQ_CONFIG:
-        fix_output(destination_folder, "c2s")
+    if storage is not None:
+        fix_output(destination_folder, storage)
 
 
-def preprocess_complete(project_path: str, config_path: str) -> None:
+def preprocess_complete(project_path: str, config_path: str, storage: str = None) -> None:
     """Transform project into test, train and val data for code2seq"""
 
     setup_psiminer()
     project_name = os.path.basename(os.path.normpath(project_path))
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
-    run_psiminer(project_path, dataset_path, config_path)
+    run_psiminer(project_path, dataset_path, config_path, storage)
 
 
 def preprocess_single(project_path: str, config_path: str) -> None:
@@ -113,8 +111,10 @@ if __name__ == "__main__":
         for project in projects:
             if args.model_type == "code2seq":
                 config = PSIMINER_CODE2SEQ_CONFIG
+                storage = "c2s"
             elif args.model_type == "treelstm":
                 config = PSIMINER_TREELSTM_CONFIG
+                storage = "jsonl"
             else:
                 ValueError("Unknown model")
-            preprocess_complete(project.strip(), config)
+            preprocess_complete(project.strip(), config, storage)
