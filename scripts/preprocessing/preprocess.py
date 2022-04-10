@@ -69,31 +69,27 @@ def fix_output(dataset_path: str, extension: str) -> None:
     print("Test:", len(test_samples_set))
 
 
-def run_psiminer(source_folder: str, destination_folder: str, model_type: str) -> None:
+def run_psiminer(source_folder: str, destination_folder: str, config_path: str) -> None:
     """Run psiminer and set correct filenames"""
 
-    if model_type == "code2seq":
-        cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{source_folder}" "{destination_folder}" {PSIMINER_CODE2SEQ_CONFIG}'
-        os.system(cmd)
-        fix_output(destination_folder, "c2s")
-    elif model_type == "treelstm":
-        cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{source_folder}" "{destination_folder}" {PSIMINER_TREELSTM_CONFIG}'
-        os.system(cmd)
+    cmd = f'bash {PSIMINER_DIR}/psiminer.sh "{source_folder}" "{destination_folder}" {config_path}'
+    os.system(cmd)
+    if config_path == PSIMINER_TREELSTM_CONFIG:
         fix_output(destination_folder, "jsonl")
-    else:
-        raise ValueError("Unknown model")
+    elif config_path == PSIMINER_CODE2SEQ_CONFIG:
+        fix_output(destination_folder, "c2s")
 
 
-def preprocess_complete(project_path: str, model_type: str) -> None:
+def preprocess_complete(project_path: str, config_path: str) -> None:
     """Transform project into test, train and val data for code2seq"""
 
     setup_psiminer()
     project_name = os.path.basename(os.path.normpath(project_path))
     dataset_path = os.path.join(PREPROCESSED_DATASETS_DIR, project_name)
-    run_psiminer(project_path, dataset_path, model_type)
+    run_psiminer(project_path, dataset_path, config_path)
 
 
-def preprocess_single(project_path: str, model_type: str) -> None:
+def preprocess_single(project_path: str, config_path: str) -> None:
     """Transform project into test data for code2seq via psiminer"""
 
     setup_psiminer()
@@ -104,7 +100,7 @@ def preprocess_single(project_path: str, model_type: str) -> None:
         os.makedirs(os.path.join(data_path, "train"))
         os.makedirs(os.path.join(data_path, "val"))
         copytree(project_path, new_path)
-        preprocess_complete(data_path, model_type)
+        preprocess_complete(data_path, config_path)
 
 
 if __name__ == "__main__":
@@ -115,4 +111,10 @@ if __name__ == "__main__":
 
     with open(args.projects, "r") as projects:
         for project in projects:
-            preprocess_complete(project.strip(), args.model_type)
+            if args.model_type == "code2seq":
+                config = PSIMINER_CODE2SEQ_CONFIG
+            elif args.model_type == "treelstm":
+                config = PSIMINER_TREELSTM_CONFIG
+            else:
+                ValueError("Unknown model")
+            preprocess_complete(project.strip(), config)

@@ -2,12 +2,12 @@ import os
 
 DEPENDENCIES_DIR = "dependencies"
 PREPROCESSED_DATASETS_DIR = "datasets"
-CODE2SEQ_DIR = os.path.join(DEPENDENCIES_DIR, "code2seq_repo")
-PSIMINER_DIR = os.path.join(DEPENDENCIES_DIR, "psiminer_repo")
+PSIMINER_DIR = os.path.join(DEPENDENCIES_DIR, "psiminer")
 NO_TYPES_PATH = "java-med-psi-no-types"
 COMMENT_UPDATER_DIR = os.path.join(DEPENDENCIES_DIR, "CommentUpdater")
 CONFIGS_DIR = "configs"
 PSIMINER_CODE2SEQ_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_code2seq_config.json")
+PSIMINER_CODE2SEQ_TOPIC_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_code2seq_topic_config.json")
 PSIMINER_TREELSTM_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_treelstm_config.json")
 COMMENT_UPDATER_CONFIG_DIR = os.path.join(CONFIGS_DIR, "comment_updater_config")
 CODE2SEQ_CONFIG = os.path.join(CONFIGS_DIR, "code2seq_config.yaml")
