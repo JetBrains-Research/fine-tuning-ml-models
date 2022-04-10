@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import os
 
 from .preprocess import run_psiminer
-from scripts.utils import PSIMINER_CODE2SEQ_TOPIC_CONFIG
+from scripts.utils import PSIMINER_CODE2SEQ_CONFIG
 
 
 def process_separate(dataset_path: str) -> None:
@@ -11,7 +11,7 @@ def process_separate(dataset_path: str) -> None:
         for name in os.listdir(projects_set_folder):
             input_path = os.path.join(projects_set_folder, name)
             output_path = os.path.join("separate_lines", projects_set, name)
-            run_psiminer(input_path, output_path, PSIMINER_CODE2SEQ_TOPIC_CONFIG)
+            run_psiminer(input_path, output_path, PSIMINER_CODE2SEQ_CONFIG)
 
 
 if __name__ == "__main__":
