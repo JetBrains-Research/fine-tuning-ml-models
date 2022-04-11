@@ -18,7 +18,7 @@ def process_sample(sample: str) -> str:
 
 
 df = pd.read_csv(NODES_VOCABULARY)
-node_to_id = {k: v for v, k in zip(df['id'].tolist(), df['nodeType'].tolist())}
+node_to_id = {k: v for v, k in zip(df["id"].tolist(), df["nodeType"].tolist())}
 dataset_path = "separate_lines"
 for projects_set in ["training", "validation", "test"]:
     projects_set_folder = os.path.join(dataset_path, projects_set)
@@ -26,7 +26,7 @@ for projects_set in ["training", "validation", "test"]:
         input_data = os.path.join(projects_set_folder, name, "result.c2s")
         nodes_data = os.path.join(projects_set_folder, name, "nodes_vocabulary.csv")
         df1 = pd.read_csv(nodes_data)
-        id_to_node = {k: v for k, v in zip(df1['id'].tolist(), df1['nodeType'].tolist())}
+        id_to_node = {k: v for k, v in zip(df1["id"].tolist(), df1["nodeType"].tolist())}
         correct_lines = []
         with open(input_data, "r") as f:
             for line in f:
