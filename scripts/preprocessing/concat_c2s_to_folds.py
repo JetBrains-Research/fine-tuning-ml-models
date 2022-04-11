@@ -17,7 +17,10 @@ def unite_by_topics(data_path: str, topics_number: int) -> None:
             projects = [k for k, v in data[projects_set].items() if v == i]
             with open(os.path.join(output_dir, f"{short_name}.c2s"), "w") as f:
                 for project in projects:
-                    with open(os.path.join("separate_lines", projects_set, project, "result.c2s"), "r") as f1:
+                    input_data = os.path.join("separate_lines", projects_set, project, "result.c2s")
+                    if not os.path.exists(input_data):
+                        continue
+                    with open(input_data, "r") as f1:
                         f.writelines(f1.readlines())
 
 
