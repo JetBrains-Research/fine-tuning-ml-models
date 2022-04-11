@@ -10,6 +10,7 @@ PSIMINER_CODE2SEQ_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_code2seq_config.j
 PSIMINER_CODE2SEQ_TOPIC_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_code2seq_topic_config.json")
 PSIMINER_TREELSTM_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_treelstm_config.json")
 COMMENT_UPDATER_CONFIG_DIR = os.path.join(CONFIGS_DIR, "comment_updater_config")
+NODES_VOCABULARY = os.path.join(CONFIGS_DIR, "old_nodes_vocabulary.csv")
 CODE2SEQ_CONFIG = os.path.join(CONFIGS_DIR, "code2seq_config.yaml")
 CODE2SEQ_VOCABULARY = os.path.join(CONFIGS_DIR, "code2seq_vocabulary.pkl")
 TREELSTM_CONFIG = os.path.join(CONFIGS_DIR, "treelstm_config.yaml")
