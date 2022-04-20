@@ -15,8 +15,7 @@ def save_metrics(metrics: ClassificationMetrics, path: str) -> None:
 MAIN_MODEL = "models/code2seq.ckpt"
 
 
-def restore_c2s_metrics(dataset_path, model_path, outdir) -> None:
-    vocabulary = os.path.join(dataset_path, "vocabulary.pkl")
+def restore_c2s_metrics(dataset_path, model_path, vocabulary, outdir) -> None:
 
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -62,4 +61,6 @@ if __name__ == "__main__":
             output = os.path.join("results", name)
             full_name = os.path.join("models", "fine_tuning_experiments", project)
 
-            restore_c2s_metrics(dataset, full_name, output)
+            vocab = os.path.join(dataset, "vocabulary.pkl")
+
+            restore_c2s_metrics(dataset, full_name, vocab, output)

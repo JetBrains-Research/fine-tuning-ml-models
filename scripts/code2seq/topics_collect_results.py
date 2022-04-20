@@ -26,8 +26,10 @@ def process_projects(data_path: str, topics_number: int) -> None:
         if model_dir == "":
             raise ValueError("Topic model not found")
 
+        vocabulary = os.path.join(PREPROCESSED_DATASETS_DIR, f"{topics_number}_{project_topics[project]}",
+                                  "vocabulary.pkl")
         output_path = os.path.join(RESULTS_DIR, project)
-        restore_c2s_metrics(dataset, model_dir, output_path)
+        restore_c2s_metrics(dataset, model_dir, vocabulary, output_path)
 
 
 if __name__ == "__main__":
