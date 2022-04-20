@@ -2,19 +2,19 @@ import os
 
 DEPENDENCIES_DIR = "dependencies"
 PREPROCESSED_DATASETS_DIR = "datasets"
-CODE2SEQ_DIR = os.path.join(DEPENDENCIES_DIR, "code2seq_repo")
-PSIMINER_DIR = os.path.join(DEPENDENCIES_DIR, "psiminer_repo")
+PSIMINER_DIR = os.path.join(DEPENDENCIES_DIR, "psiminer")
 NO_TYPES_PATH = "java-med-psi-no-types"
 COMMENT_UPDATER_DIR = os.path.join(DEPENDENCIES_DIR, "CommentUpdater")
 CONFIGS_DIR = "configs"
 PSIMINER_CODE2SEQ_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_code2seq_config.json")
+PSIMINER_CODE2SEQ_TOPIC_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_code2seq_topic_config.json")
 PSIMINER_TREELSTM_CONFIG = os.path.join(CONFIGS_DIR, "psiminer_treelstm_config.json")
 COMMENT_UPDATER_CONFIG_DIR = os.path.join(CONFIGS_DIR, "comment_updater_config")
+NODES_VOCABULARY = os.path.join(CONFIGS_DIR, "old_nodes_vocabulary.csv")
 CODE2SEQ_CONFIG = os.path.join(CONFIGS_DIR, "code2seq_config.yaml")
 CODE2SEQ_VOCABULARY = os.path.join(CONFIGS_DIR, "code2seq_vocabulary.pkl")
 TREELSTM_CONFIG = os.path.join(CONFIGS_DIR, "treelstm_config.yaml")
 TREELSTM_VOCABULARY = os.path.join(CONFIGS_DIR, "treelstm_vocabulary.pkl")
-PREPROCESSED_DATASETS_DIR = "datasets"
 CLONED_REPOS_DIR = "cloned_repos"
 EXTRACTED_METHODS_DIR = "extracted_methods"
 PSIMINER_COMMIT_ID = "3487e323e7527bbe8cf3d483cb89fc0e9531a635"
