@@ -2,7 +2,7 @@ import json
 from argparse import ArgumentParser
 import os
 from ..utils import PREPROCESSED_DATASETS_DIR, RESULTS_DIR
-from restore_metrics import restore_c2s_metrics
+from .restore_metrics import restore_c2s_metrics
 
 
 def process_projects(data_path: str, topics_number: int) -> None:
