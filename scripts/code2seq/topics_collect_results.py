@@ -21,7 +21,7 @@ def process_projects(data_path: str, topics_number: int) -> None:
         for model in os.listdir(model_dirs):
             m = model.split("_")
             if m[0] == str(topics_number) and m[1] == str(project_topics[project]):
-                model_dir = model
+                model_dir = os.path.join("models", "fine_tuning_experiments", model)
 
         if model_dir == "":
             raise ValueError("Topic model not found")
