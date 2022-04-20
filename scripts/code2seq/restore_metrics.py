@@ -12,46 +12,54 @@ def save_metrics(metrics: ClassificationMetrics, path: str) -> None:
         json.dump(d, output)
 
 
-arg_parser = ArgumentParser()
-arg_parser.add_argument("projects_file", type=str, help="A path to file with list of preprocessed projects' names")
-args = arg_parser.parse_args()
-
 MAIN_MODEL = "models/code2seq.ckpt"
 
-with open(args.projects_file, "r") as f:
-    for line in f:
-        project = line.strip()
-        name = project.split("_")[0]
-        dataset_path = os.path.join("datasets", name)
-        outdir = os.path.join("results", name)
+
+def restore_c2s_metrics(dataset_path, model_path, outdir) -> None:
+    vocabulary = os.path.join(dataset_path, "vocabulary.pkl")
+
+    if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-        full_name = os.path.join("models", "fine_tuning_experiments", project)
-        vocabulary = os.path.join(dataset_path, "vocabulary.pkl")
-        new_model_name = os.listdir(os.path.join(full_name, "new"))[0]
-        new_model_path = os.path.join(full_name, "new", new_model_name)
+    new_model_name = os.listdir(os.path.join(model_path, "new"))[0]
+    new_model_path = os.path.join(model_path, "new", new_model_name)
+    new = extract(
+        new_model_path, dataset_path, True, vocabulary, result_file=os.path.join(outdir, "new_after_names.txt")
+    )
+    calculate_and_dump_metrics(
+        os.path.join(outdir, "new_after_names.txt"), os.path.join(outdir, "new_after_metrics.csv")
+    )
+    save_metrics(new, os.path.join(outdir, "new_after.jsonl"))
 
-        new = extract(
-            new_model_path, dataset_path, True, vocabulary, result_file=os.path.join(outdir, "new_after_names.txt")
-        )
-        calculate_and_dump_metrics(
-            os.path.join(outdir, "new_after_names.txt"), os.path.join(outdir, "new_after_metrics.csv")
-        )
-        save_metrics(new, os.path.join(outdir, "new_after.jsonl"))
+    before = extract(MAIN_MODEL, dataset_path, False, result_file=os.path.join(outdir, "trained_before_names.txt"))
+    calculate_and_dump_metrics(
+        os.path.join(outdir, "trained_before_names.txt"), os.path.join(outdir, "trained_before_metrics.csv")
+    )
+    save_metrics(before, os.path.join(outdir, "trained_before.jsonl"))
 
-        before = extract(MAIN_MODEL, dataset_path, False, result_file=os.path.join(outdir, "trained_before_names.txt"))
-        calculate_and_dump_metrics(
-            os.path.join(outdir, "trained_before_names.txt"), os.path.join(outdir, "trained_before_metrics.csv")
-        )
-        save_metrics(before, os.path.join(outdir, "trained_before.jsonl"))
+    trained_model_name = os.listdir(os.path.join(model_path, "trained"))[0]
+    trained_model_path = os.path.join(model_path, "trained", trained_model_name)
 
-        trained_model_name = os.listdir(os.path.join(full_name, "trained"))[0]
-        trained_model_path = os.path.join(full_name, "trained", trained_model_name)
+    after = extract(
+        trained_model_path, dataset_path, False, result_file=os.path.join(outdir, "trained_after_names.txt")
+    )
+    calculate_and_dump_metrics(
+        os.path.join(outdir, "trained_after_names.txt"), os.path.join(outdir, "trained_after_metrics.csv")
+    )
+    save_metrics(after, os.path.join(outdir, "trained_after.jsonl"))
 
-        after = extract(
-            trained_model_path, dataset_path, False, result_file=os.path.join(outdir, "trained_after_names.txt")
-        )
-        calculate_and_dump_metrics(
-            os.path.join(outdir, "trained_after_names.txt"), os.path.join(outdir, "trained_after_metrics.csv")
-        )
-        save_metrics(after, os.path.join(outdir, "trained_after.jsonl"))
+
+if __name__ == "__main__":
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument("projects_file", type=str, help="A path to file with list of preprocessed projects' names")
+    args = arg_parser.parse_args()
+
+    with open(args.projects_file, "r") as f:
+        for line in f:
+            project = line.strip()
+            name = project.split("_")[0]
+            dataset = os.path.join("datasets", name)
+            output = os.path.join("results", name)
+            full_name = os.path.join("models", "fine_tuning_experiments", project)
+
+            restore_c2s_metrics(dataset, full_name, output)
